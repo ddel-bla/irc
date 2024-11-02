@@ -1,11 +1,13 @@
-NAME	= irc
+NAME	= ircserv
 CFLAGS	= -Wall -Wextra -Werror -std=c++98
 RM		= rm -rf
 CC		= c++
 SRC_DIR = src/
 OBJ_DIR = obj/
 
-SRC		=	Client \
+SRC		=	Comandos \
+			Errores \
+			Eventos \
 			IRCServer \
 			main
 

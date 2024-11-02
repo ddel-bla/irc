@@ -1,133 +1,117 @@
-#include <iostream>
-#include <cstring>
-#include <unistd.h>
-#include <fcntl.h>
-#include <arpa/inet.h>
 #include "../inc/IRCServer.hpp"
+#include "../inc/Eventos.hpp"
+#include "../inc/Errores.hpp"
 
-#define PORT 6667
-#define MAX_CLIENTS 100
+Servidor::Servidor(int puerto, const std::string& password)
+	: puerto(puerto), password(password), servidor_fd(-1) {}
 
-IRCServer::IRCServer() : server_socket(-1) {}
-
-IRCServer::~IRCServer() {
-	if (server_socket != -1) {
-		close(server_socket);
+bool Servidor::iniciar_servidor() {
+	servidor_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (servidor_fd < 0) {
+		std::cerr << "Error al crear el socket: " << strerror(errno) << std::endl;
+		return false;
 	}
-}
+	int opt = 1;
+	if (setsockopt(servidor_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+		std::cerr << "Error en setsockopt: " << strerror(errno) << std::endl;
+		close(servidor_fd);
+		return false;
+	}
+	if (fcntl(servidor_fd, F_SETFL, O_NONBLOCK) < 0) {
+		std::cerr << "Error al configurar el modo no bloqueante: " << strerror(errno) << std::endl;
+		close(servidor_fd);
+		return false;
+	}
+	sockaddr_in direccion;
+	std::memset(&direccion, 0, sizeof(direccion));
+	direccion.sin_family = AF_INET;
+	direccion.sin_addr.s_addr = INADDR_ANY;
+	direccion.sin_port = htons(puerto);
 
-bool IRCServer::start() {
-	server_socket = socket(AF_INET, SOCK_STREAM, 0);
-	if (server_socket == -1) {
-		std::cerr << "Error al crear el socket" << std::endl;
+	if (bind(servidor_fd, (struct sockaddr*)&direccion, sizeof(direccion)) < 0) {
+		std::cerr << "Error en bind: " << strerror(errno) << std::endl;
+		close(servidor_fd);
 		return false;
 	}
 
-	// Hacer que el socket sea no bloqueante
-	fcntl(server_socket, F_SETFL, O_NONBLOCK);
-
-	sockaddr_in server_addr;
-	server_addr.sin_family = AF_INET;
-	server_addr.sin_port = htons(PORT);
-	server_addr.sin_addr.s_addr = INADDR_ANY;
-	memset(server_addr.sin_zero, '\0', sizeof(server_addr.sin_zero));
-
-	if (bind(server_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
-		std::cerr << "Error en bind" << std::endl;
+	if (listen(servidor_fd, 5) < 0) {
+		std::cerr << "Error en listen: " << strerror(errno) << std::endl;
+		close(servidor_fd);
 		return false;
 	}
 
-	if (listen(server_socket, MAX_CLIENTS) < 0) {
-		std::cerr << "Error en listen" << std::endl;
-		return false;
-	}
-
-	// Agregar el socket del servidor a poll_fds
-	pollfd server_pollfd;
-	server_pollfd.fd = server_socket;
-	server_pollfd.events = POLLIN; // Escuchar conexiones entrantes
-	poll_fds.push_back(server_pollfd);
-
-	std::cout << "Servidor IRC escuchando en el puerto " << PORT << std::endl;
+	std::cout << "Servidor iniciado en el puerto " << puerto << std::endl;
 	return true;
 }
 
-void IRCServer::run() {
+void Servidor::ejecutar() {
+	struct pollfd pfd;
+	pfd.fd = servidor_fd;
+	pfd.events = POLLIN;
+
+	fds.push_back(pfd);
 	while (true) {
-		int poll_count = poll(poll_fds.data(), poll_fds.size(), -1);
-		if (poll_count < 0) {
-			std::cerr << "Error en poll()" << std::endl;
+		int ret = poll(fds.data(), fds.size(), -1);
+		if (ret < 0) {
+			std::cerr << "Error en poll: " << strerror(errno) << std::endl;
 			break;
 		}
-
-		for (size_t i = 0; i < poll_fds.size(); i++) {
-			if (poll_fds[i].revents & POLLIN) {
-				if (poll_fds[i].fd == server_socket) {
-					// Aceptar nueva conexión
-					accept_client();
-				} else {
-					// Manejar comunicación con un cliente
-					handle_client(poll_fds[i].fd);
-				}
+		for (size_t i = 0; i < fds.size(); ++i) {
+			if (fds[i].revents & POLLIN) {
+				if (fds[i].fd == servidor_fd)
+					aceptar_cliente();
+				else
+					procesar_cliente(fds[i].fd);
 			}
 		}
 	}
 }
 
-void IRCServer::accept_client() {
-	sockaddr_in client_addr;
-	socklen_t addr_size = sizeof(client_addr);
-	int client_socket = accept(server_socket, (struct sockaddr*)&client_addr, &addr_size);
+void Servidor::aceptar_cliente() {
+	sockaddr_in direccion_cliente;
+	socklen_t tam_direccion = sizeof(direccion_cliente);
+	int cliente_fd = accept(servidor_fd, (struct sockaddr*)&direccion_cliente, &tam_direccion);
 
-	if (client_socket < 0) {
-		std::cerr << "Error al aceptar cliente" << std::endl;
+	if (cliente_fd < 0) {
+		if (errno != EWOULDBLOCK)
+			std::cerr << "Error al aceptar cliente: " << strerror(errno) << std::endl;
 		return;
 	}
-
-	// Hacer que el nuevo socket sea no bloqueante
-	fcntl(client_socket, F_SETFL, O_NONBLOCK);
-
-	// Agregar cliente a la lista de poll_fds
-	pollfd client_pollfd;
-	client_pollfd.fd = client_socket;
-	client_pollfd.events = POLLIN;
-	poll_fds.push_back(client_pollfd);
-
-	// Agregar cliente a la lista de clientes
-	clients[client_socket] = Client(client_socket);
-
-	std::cout << "Nuevo cliente conectado" << std::endl;
-}
-
-void IRCServer::handle_client(int client_socket) {
-	char buffer[1024];
-	ssize_t nbytes = recv(client_socket, buffer, sizeof(buffer), 0);
-
-	if (nbytes <= 0) {
-		// Error o desconexión del cliente
-		if (nbytes == 0) {
-			std::cout << "Cliente desconectado" << std::endl;
-		} else {
-			std::cerr << "Error al recibir datos del cliente" << std::endl;
-		}
-		close_client(client_socket);
-	} else {
-		buffer[nbytes] = '\0';
-		std::cout << "Mensaje recibido: " << buffer << std::endl;
-		// Procesar el mensaje recibido (autenticación, comandos IRC, etc.)
+	if (fcntl(cliente_fd, F_SETFL, O_NONBLOCK) < 0) {
+		std::cerr << "Error al configurar cliente en modo no bloqueante: " << strerror(errno) << std::endl;
+		close(cliente_fd);
+		return;
 	}
+	struct pollfd nuevo_cliente;
+	nuevo_cliente.fd = cliente_fd;
+	nuevo_cliente.events = POLLIN;
+	fds.push_back(nuevo_cliente);
+	std::cout << "Un nuevo usuario se ha conectado. FD: " << cliente_fd << std::endl;
 }
 
-void IRCServer::close_client(int client_socket) {
-	close(client_socket);
+void Servidor::procesar_cliente(int cliente_fd) {
+	char buffer[512];
+	int bytes_leidos = recv(cliente_fd, buffer, sizeof(buffer) - 1, 0);
 
-	// Remover el cliente de poll_fds y de la lista de clientes
-	for (size_t i = 0; i < poll_fds.size(); i++) {
-		if (poll_fds[i].fd == client_socket) {
-			poll_fds.erase(poll_fds.begin() + i);
+	if (bytes_leidos <= 0) {
+		if (bytes_leidos == 0)
+			std::cout << "Cliente desconectado. FD: " << cliente_fd << std::endl;
+		else
+			std::cerr << "Error al recibir datos: " << strerror(errno) << std::endl;
+		close(cliente_fd);
+		eliminar_cliente(cliente_fd);
+		return;
+	}
+	buffer[bytes_leidos] = '\0';
+	std::cout << "Mensaje recibido de FD " << cliente_fd << ": " << buffer << std::endl;
+	// TO DO Procesar mensaje o responder al cliente
+}
+
+void Servidor::eliminar_cliente(int cliente_fd) {
+	for (size_t i = 0; i < fds.size(); ++i) {
+		if (fds[i].fd == cliente_fd) {
+			fds.erase(fds.begin() + i);
 			break;
 		}
 	}
-
-	clients.erase(client_socket);
 }
