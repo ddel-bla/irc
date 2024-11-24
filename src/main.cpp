@@ -1,12 +1,11 @@
-#include "../inc/Servidor.hpp"
+#include "IRCServer.hpp"
 
 int main(int argc, char* argv[]) {
 	if (argc != 3) {
 		std::cerr << "Uso: ./ircserv <puerto> <contraseña>" << std::endl;
 		return 1;
 	}
-
-	// Validar que el puerto es un número	
+	// to do validar puerto y la contraseña no hace nada
 	int puerto = std::atoi(argv[1]);
 	std::string password = argv[2];
 	

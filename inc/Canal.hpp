@@ -1,22 +1,26 @@
 #ifndef CANAL_HPP
 #define CANAL_HPP
 
-#include <string>
 #include <map>
-#include "../inc/Cliente.hpp"
+#include "Cliente.hpp"
 
 class Canal {
-public:
-    std::string nombre;
-    std::string topic;
-    std::map<int, Cliente*> miembros;
+	public:
+		std::string nombre; // Nombre del canal
+		std::string topic;  // Tópico del canal 
+		std::map<int, Cliente*> miembros; // FD del cliente -> Puntero al cliente
 
-    Canal(const std::string& nombre) : nombre(nombre), topic("") {}
+		// Constructor
+		Canal(const std::string& nombre);
 
-    void agregarMiembro(int cliente_fd, Cliente* cliente);
-    void eliminarMiembro(int cliente_fd);
-    bool esMiembro(int cliente_fd) const;
-    void enviarMensaje(const std::string& mensaje) const;
+		// Métodos para gestionar miembros
+		void agregarMiembro(int cliente_fd, Cliente* cliente);
+		void eliminarMiembro(int cliente_fd);
+		bool esMiembro(int cliente_fd) const;
+		void enviarMensaje(const std::string& mensaje) const;
+
+		// Obtener información del canal
+		size_t cantidadMiembros() const;
 };
 
-#endif // CANAL_HPP
+#endif
