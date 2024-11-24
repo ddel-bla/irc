@@ -1,16 +1,20 @@
 NAME	= ircserv
-CFLAGS	= -Wall -Wextra -Werror -std=c++98
-RM		= rm -rf
+
 CC		= c++
+CFLAGS	= -Wall -Wextra -Werror -std=c++98
+D_FLAGS = -g -DDEBUG
+RM		= rm -rf
+
 SRC_DIR = src/
 OBJ_DIR = obj/
+INC_DIR = inc/
 
 SRC		=	Canal \
 			Cliente \
-			Comando \
-			Evento \
-			main \
-			Servidor
+			Comandos \
+			Eventos \
+			IRCServer \
+			main
 
 SRCS	= $(addprefix $(SRC_DIR), $(addsuffix .cpp, $(SRC)))
 OBJS	= $(addprefix $(OBJ_DIR), $(addsuffix .o, $(SRC)))
@@ -24,7 +28,7 @@ $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
 
 $(OBJ_DIR)%.o: $(SRC_DIR)%.cpp | $(OBJ_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -I$(INC_DIR) -c $< -o $@
 
 clean:
 	$(RM) $(OBJ_DIR)
@@ -34,4 +38,7 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all clean fclean re
+debug: CFLAGS += $(DEBUG_FLAGS)
+debug: re
+
+.PHONY: all clean fclean re debug

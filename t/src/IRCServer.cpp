@@ -1,6 +1,5 @@
-#include "../inc/IRCServer.hpp"
-#include "../inc/Eventos.hpp"
-#include "../inc/Errores.hpp"
+#include "IRCServer.hpp"
+#include "Eventos.hpp"
 
 Servidor::Servidor(int puerto, const std::string& password)
 	: puerto(puerto), password(password), servidor_fd(-1) {}

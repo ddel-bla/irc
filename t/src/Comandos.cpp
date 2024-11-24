@@ -1,4 +1,4 @@
-#include "../inc/Comandos.hpp"
+#include "Comandos.hpp"
 
 void Comando::procesar_comando(const std::string& comando, const std::string& argumentos) {
 	if (comando == "/nick")

@@ -1,22 +1,12 @@
-## Iniciar Cliente vía Software de terceros
-
-https://irssi.org/
-https://hexchat.github.io/
-Cuando mandemos comandos con estos hay que poner /quote porque sino te lo interpreta el propio cliente y no llega el comando al server
-
-
 ## Iniciar Cliente vía Netcat
-Netcat (o nc) es una herramienta de red que permite crear conexiones TCP o UDP, lo que la convierte en un recurso útil para interactuar con servidores IRC. Puede usarse para probar la conexión al servidor, enviar mensajes o simular un cliente, facilitando así la depuración y el desarrollo del protocolo IRC en nuestro proyecto.
-Para iniciar con nc debemos escribir:
 ```nc localhost <port>```
 ```pass <password>```
 ```nick <nickname>```
 ```user <name> 0 * <name>```
 
-## Iniciar Cliente vía Telnet
-Telnet es un protocolo de red que permite la comunicación entre un cliente y un servidor a través de una conexión TCP. Se utiliza principalmente para acceder a dispositivos de red y sistemas de forma remota mediante una interfaz de línea de comandos. A pesar de su simplicidad, Telnet no cifra la información, lo que lo hace menos seguro en comparación con alternativas como SSH (Secure Shell).
-```telnet localhost <port>```
-```pass <password>```
-```nick <nickname>```
-```user <name> 0 * <name>```
-**Tanto el campo `<port>` como `<password>` deben coincidir con los valores que utilizaste en server.*
+## Documentación del protocolo
+https://modern.ircdocs.horse/
+
+## Iniciar Cliente vía Software de terceros
+https://irssi.org/
+https://hexchat.github.io/

@@ -1,4 +1,4 @@
-#include "../inc/Servidor.hpp"
+#include "IRCServer.hpp"
 
 int main(int argc, char* argv[]) {
 	if (argc != 3) {
@@ -6,7 +6,6 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	// Validar que el puerto es un número	
 	int puerto = std::atoi(argv[1]);
 	std::string password = argv[2];
 	
