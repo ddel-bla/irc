@@ -131,6 +131,7 @@ void Servidor::procesar_cliente(int cliente_fd) {
 	}
 
 	buffer[bytes_leidos] = '\0';
+    evento.enviarMensajeGlobal(buffer, clientes);
 	std::cout << "Mensaje recibido de FD " << cliente_fd << ": " << buffer << std::endl;
 
 }

@@ -12,10 +12,9 @@ ejemplo
 <:ullapool.chathispano.com MODE testnicK :+xwT
 > PONG : REPONDES CON EL MISMO CÓDIGO
 
-
 ## Documentación del protocolo
 https://modern.ircdocs.horse/
 
 ## Iniciar Cliente vía Software de terceros
+https://hexchat.github.io/ <- Yo instalé este
 https://irssi.org/
-https://hexchat.github.io/
