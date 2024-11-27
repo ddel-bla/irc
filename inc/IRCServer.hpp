@@ -19,6 +19,7 @@ class Servidor {
 		int servidor_fd;
 		std::vector<struct pollfd> fds;
 		std::map<int, Cliente*> clientes; // Mapeo de FD a objetos Cliente
+		std::map<std::string, Canal> canales; // Mapa para gestionar los canales
 		Evento evento; // Nuevo atributo para manejar eventos
 
 		void aceptar_cliente();
@@ -29,6 +30,7 @@ class Servidor {
 		Servidor(int puerto, const std::string& password);
 		bool iniciar_servidor();
 		void ejecutar();
+		std::vector<std::string> obtenerCanalesDeCliente(int cliente_fd) const;
 	};
 
 #endif
