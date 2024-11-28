@@ -5,11 +5,11 @@
 #include <unistd.h>  // Para close
 
 // Constructor
-Servidor::Servidor(int puerto, const std::string& password)
-	: puerto(puerto), password(password), servidor_fd(-1) {}
+Servidor::Servidor(int puerto, const std::string& password): puerto(puerto), password(password), servidor_fd(-1) {}
 
 // Inicia el servidor
-bool Servidor::iniciar_servidor() {
+bool Servidor::iniciar_servidor(void)
+{
 	servidor_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (servidor_fd < 0) {
 		std::cerr << "Error al crear el socket: " << strerror(errno) << std::endl;
@@ -70,7 +70,7 @@ void Servidor::ejecutar() {
 				if (fds[i].fd == servidor_fd) {
 					aceptar_cliente();
 				} else {
-					procesar_cliente(fds[i].fd);
+					receiveData(fds[i].fd);
 				}
 			}
 		}
@@ -95,9 +95,9 @@ void Servidor::aceptar_cliente() {
 		close(cliente_fd);
 		return;
 	}
-
+	
 	// Crear un nuevo cliente con valores predeterminados
-	Cliente* nuevo_cliente = new Cliente(cliente_fd, "defaultNick", "defaultUser", "defaultHost");
+	Cliente* nuevo_cliente = new Cliente(cliente_fd);
 	clientes[cliente_fd] = nuevo_cliente;
 
 	// Notificar conexión usando Evento
@@ -150,4 +150,242 @@ void Servidor::eliminar_cliente(int cliente_fd) {
 			break;
 		}
 	}
+}
+
+void Servidor::enviar_mensaje(int cliente_fd, const std::string& mensaje) {
+    std::string mensaje_completo = mensaje + "\r\n";
+    send(cliente_fd, mensaje_completo.c_str(), mensaje_completo.size(), 0);
+}
+
+void Servidor::receiveData(int fd)
+{
+	char		buffer[512];
+	size_t		bytes;
+	Cliente*	cliente = clientes[fd];
+	std::vector<std::string> commands;
+
+	memset(buffer, 0, sizeof(buffer));
+	bytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
+
+	if (bytes <= 0)
+	{
+		// CLIENT DISCONECTION
+		evento.notificarDesconexion(fd, cliente->getNickname(), clientes);
+		close(fd);
+		eliminar_cliente(fd);
+		return;
+	}
+    
+    cliente->setBuffer(buffer);
+
+    if (cliente->getBuffer().find_first_of(CRLF) == std::string::npos)
+        return;
+
+    // SPLIT BY '\r\n'
+    commands = Utils::split(cliente->getBuffer(), CRLF);
+	
+    // PROCESS EACH COMMAND
+    for (size_t i = 0; i < commands.size(); i++)
+        process_command(commands[i], fd);
+
+    cliente->clearBuffer();
+}
+
+void Servidor::process_command(std::string command, int fd)
+{
+	std::vector<std::string> split_command;
+	Cliente	*cliente = clientes[fd];
+
+	if (command.empty())
+		return ;
+	
+	split_command = Utils::splitBySpaces(command);
+
+	// EMPTY VECTOR
+	if (!split_command.size())
+		return ;
+	
+	if (split_command[0] == PASS)
+		authenticate(command, *cliente);
+	else if (split_command[0] == USER)
+	{
+		std::cout << "Procesando username..." << std::endl;
+		registerUsername(command, *cliente);
+	}
+	else if (split_command[0] == NICK)
+	{
+		std::cout << "Procesando nickname..." << std::endl;
+		registerNickname(command, *cliente);
+	}
+	else if (split_command[0] == QUIT)
+		quit(command, fd);
+	else if (cliente->isRegistred()) // Si está registrado puede ejecutar otros comandos
+	{
+		std::cout << "Puedes ejecutar otros comandos" << std::endl;	
+	}
+	else if (!cliente->isRegistred())
+		std::cout << cliente->isRegistred() << ERR_NOTREGISTERED(cliente->getNickname()) << std::endl;
+	(void) fd;
+}
+
+void Servidor::quit(std::string command, int fd)
+{
+	std::vector<std::string> split_command;
+
+	split_command = Utils::splitBySpaces(command);
+
+	std::cout << "Client disconnected" << std::endl;
+	close(fd);
+	eliminar_cliente(fd);
+}
+
+void	Servidor::authenticate(std::string command, Cliente& client)
+{
+	  std::vector<std::string>    split_command;
+    std::string                 enteredPassword;
+
+    split_command = Utils::splitBySpaces(command);
+    if (split_command.size() == 2 && !client.isRegistred())
+    {
+        // SKIP 'PASS'
+		enteredPassword = split_command[1];
+
+		// REMOVE ':' -- PASS :password
+		Utils::removeLeadingChar(enteredPassword, ':');
+
+        if (enteredPassword == this->password)
+        {
+            client.setAutenticate(true);
+            std::cout << "Contraseña correcta... " << client.isAutenticate() << std::endl;
+        }
+        else
+        {
+            std::cout << ERR_PASSWDMISMATCH(client.getNickname()) << std::endl;
+            client.setAutenticate(false);
+        }
+    }
+    else if (client.isRegistred())
+        std::cout << ERR_ALREADYREGISTERED(client.getNickname()) << std::endl;
+	else
+		std::cout << ERR_NEEDMOREPARAMS(client.getNickname()) << std::endl;
+}
+
+void	Servidor::registerNickname(std::string command, Cliente& client)
+{
+	std::vector<std::string>	split_command;
+	size_t	command_len;
+	std::string	nickname;
+	std::string	oldNickname;
+
+	// DEBE ESTAR AUTENTICADO (PASS)
+	if (client.isAutenticate())
+	{
+		split_command = Utils::splitBySpaces(command);
+		command_len = split_command.size(); 
+		if (command_len == 2)
+		{
+			// SKIP 'NICK'
+			nickname = split_command[1];
+			
+			// REMOVE ':' NICK :wii
+			Utils::removeLeadingChar(nickname, ':');
+
+			if (!isValidNickname(nickname))
+				std::cout << ERR_ERRONEUSNICK(nickname) << std::endl;
+			else if (isNicknameTaken(nickname))
+				std::cout << ERR_NICKCOLLISION(nickname) << std::endl;
+			else
+			{	
+				// YA TIENE NICK --> CAMBIAR NICK
+				if (!client.getNickname().empty() && nickname != client.getNickname())
+					oldNickname = client.getNickname();
+				
+				client.setNickname(nickname);
+				
+				// ACTUALIZAR CANALES
+
+				// CAMBIO NICK -- MENSAJE EXITO
+				if (!client.getUsername().empty())
+				{
+					client.setRegistred(true);
+					std::cout << RPL_CONNECTED(client.getNickname()) << std::endl;
+					if (!oldNickname.empty())
+						std::cout << oldNickname << ": Nickname changed!" << std::endl;	 //OPTIONAL
+				}
+			}
+		}
+		else if (command_len < 2) 	// Not enough params
+			std::cout << ERR_NONICKNAME(std::string("*")) << std::endl;
+		else if (command_len > 2)	// Spaces not allowed
+			std::cout << ERR_ERRONEUSNICK(std::string("*")) << std::endl;
+	}
+	else
+		std::cout << ERR_NOTREGISTERED(std::string("*")) << std::endl;
+	
+}
+
+void	Servidor::registerUsername(std::string command, Cliente& client)
+{
+	std::vector<std::string>	split_command;
+	size_t	command_len;
+
+	// DEBE ESTAR AUTENTICADO (PASS)
+	if(client.isAutenticate())
+	{
+		split_command = Utils::splitBySpaces(command);
+		command_len = split_command.size();
+		if (command_len < 5)
+			std::cout << ERR_NEEDMOREPARAMS(client.getNickname());
+		else if (!client.getUsername().empty())
+			std::cout << ERR_ALREADYREGISTERED(client.getNickname()) << std::endl;
+		else
+		{
+			client.setUsername(split_command[1]);
+			if (!client.getNickname().empty())
+			{
+				client.setRegistred(true);
+				std::cout << RPL_CONNECTED(client.getNickname()) << std::endl;	
+			}
+		}
+	}
+	else
+		std::cout << ERR_NOTREGISTERED(std::string("*")) << std::endl;
+}
+
+bool	Servidor::isValidNickname(const std::string nickname)
+{	
+	// VALID CHARACTERS
+    if (nickname.empty() || nickname[0] == '&' || nickname[0] == '#' || nickname[0] == ':')
+        return (false);
+
+    for (size_t i = 0; i < nickname.size(); i++) {
+        if (!std::isalnum(nickname[i]) && nickname[i] != '_')
+            return (false);
+    }
+
+    // // UNIQUE (not in use)
+    // for (std::map<int, Cliente*>::const_iterator it = clientes.begin(); it != clientes.end(); ++it){
+    //     Cliente* cliente = it->second;
+    //     if (cliente && cliente->getNickname() == nickname) {
+    //         return false;
+    //     }
+    // }
+
+    return (true);
+}
+
+bool	Servidor::isNicknameTaken(const std::string nickname)
+{
+	std::map<int, Cliente*>:: const_iterator it;
+	Cliente* cliente;
+
+	for (it = clientes.begin(); it != clientes.end(); ++it)
+	{
+        cliente = it->second;
+        if (cliente && cliente->getNickname() == nickname) {
+            return (true);
+        }
+    }
+
+	return (false);
 }

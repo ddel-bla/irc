@@ -3,6 +3,9 @@
 
 #include <string>
 #include <iostream>
+#include "Cliente.hpp"
+#include "Macros.hpp"
+#include "Utils.hpp"
 
 class Comando {
 	public:

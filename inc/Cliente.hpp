@@ -6,6 +6,8 @@
 #include <sys/socket.h>
 #include <iostream>
 #include <cerrno>
+#include <cstring>
+#include <vector>
 
 class Cliente {
 	private:
@@ -13,20 +15,35 @@ class Cliente {
 		std::string nickname;
 		std::string username;
 		std::string hostname;
+		std::string buffer;
+		bool	autenticate;
+		bool	registred;
+
 	public:
-		Cliente(int fd, const std::string& nick, const std::string& user, const std::string& host);
+		/* PARAMETRIZED CONSTRUCTOR */
+		Cliente(int fd);
+		
+		/* DESTRUCTOR */
 		~Cliente();
 
-		// Métodos getter
+		/* GETTERS */
 		int getSocketFD() const;
 		const std::string& getNickname() const;
 		const std::string& getUsername() const;
 		const std::string& getHostname() const;
+		const std::string& getBuffer() const;
+		bool isAutenticate() const;
+		bool isRegistred() const;
 
-		// Métodos setter
-		void setNickname(const std::string& nick);
+		/* SETTERS */
+		void setNickname(const std::string& nickname);
+		void setUsername(const std::string& username);
+		void setBuffer(const std::string& buffer);
+		void setAutenticate(const bool autenticate);
+		void setRegistred(const bool registred);
 
-		// Enviar un mensaje al cliente
+		/* METHODS */
+		void clearBuffer(void);
 		void enviarMensaje(const std::string& mensaje) const;
 };
 

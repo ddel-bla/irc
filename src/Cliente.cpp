@@ -1,17 +1,15 @@
 #include "Cliente.hpp"
-#include <cstring> // Para strerror
 
-// Constructor
-Cliente::Cliente(int fd, const std::string& nick, const std::string& user, const std::string& host)
-    : socket_fd(fd), nickname(nick), username(user), hostname(host) {}
+/* PARAMETRIZED CONSTRUCTOR */
+Cliente::Cliente(int fd): socket_fd(fd), autenticate(false), registred(false) {}
 
-// Destructor
-Cliente::~Cliente() {
-    // Cierra el socket al destruir el objeto
-    if (socket_fd >= 0) {
+/* DESTRUCTOR */
+Cliente::~Cliente(void){
+    if (socket_fd >= 0)
         close(socket_fd);
-    }
 }
+
+/* GETTERS & SETTERS */
 
 // Retorna el descriptor del socket
 int Cliente::getSocketFD() const {
@@ -33,9 +31,49 @@ const std::string& Cliente::getHostname() const {
     return hostname;
 }
 
+// Get buffer
+const std::string& Cliente::getBuffer() const {
+    return buffer;
+}
+
+// Is Autenticate
+bool Cliente::isAutenticate() const {
+    return autenticate;
+}
+
+// Is Registred
+bool Cliente::isRegistred() const {
+    return registred;
+}
+
 // Modifica el nickname
 void Cliente::setNickname(const std::string& nick) {
     nickname = nick;
+}
+
+// Modifica el username
+void Cliente::setUsername(const std::string& username) {
+    this->username = username;
+}
+
+// Set buffer
+void Cliente::setBuffer(const std::string& buffer) {
+    this->buffer = buffer;
+}
+
+// Set Autenticate
+void Cliente::setAutenticate(const bool autenticate) {
+    this->autenticate = autenticate;
+}
+
+// Set Registred
+void Cliente::setRegistred(const bool registred) {
+    this->registred = registred;
+}
+
+void Cliente::clearBuffer(void)
+{
+    buffer.clear();
 }
 
 // Envía un mensaje al cliente

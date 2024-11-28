@@ -14,7 +14,8 @@ SRC		=	Canal \
 			Comandos \
 			Evento \
 			IRCServer \
-			main
+			main \
+			Utils 
 
 SRCS	= $(addprefix $(SRC_DIR), $(addsuffix .cpp, $(SRC)))
 OBJS	= $(addprefix $(OBJ_DIR), $(addsuffix .o, $(SRC)))
