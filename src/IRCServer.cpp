@@ -389,3 +389,14 @@ bool	Servidor::isNicknameTaken(const std::string nickname)
 
 	return (false);
 }
+
+std::vector<std::string> Servidor::obtenerCanalesDeCliente(int cliente_fd) const {
+    std::vector<std::string> canalesCliente;
+
+    for (std::map<std::string, Canal>::const_iterator it = canales.begin(); it != canales.end(); ++it) {
+        if (it->second.esMiembro(cliente_fd)) {
+            canalesCliente.push_back(it->first);
+        }
+    }
+    return canalesCliente;
+}
