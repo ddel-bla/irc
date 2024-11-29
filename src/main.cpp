@@ -5,8 +5,8 @@ bool	areArgsValid(std::string& port, std::string& passwd)
 	if (!(std::atoi(port.c_str()) >= 1024 && std::atoi(port.c_str()) <= 65535))
 		return (false);
 
-	std::vector<std::string> split_passwd = Utils::splitBySpaces(passwd);
-	if (split_passwd.size() > 1 || std::strlen(passwd.c_str()) > 15)
+	//std::vector<std::string> split_passwd = Utils::splitBySpaces(passwd);
+	if (std::strlen(passwd.c_str()) > 15)//(split_passwd.size() > 1 || std::strlen(passwd.c_str()) > 15)
 		return (false);
 
 	return (true);
