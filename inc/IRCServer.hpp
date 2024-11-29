@@ -1,36 +1,36 @@
 #ifndef IRCSERVER_HPP
 #define IRCSERVER_HPP
 
-#include <cstring>    // Para memset y strerror
-#include <unistd.h>   // Para close
-#include <fcntl.h>    // Para fcntl y O_NONBLOCK
-#include <netinet/in.h> // Para sockaddr_in, INADDR_ANY, htons
-#include <arpa/inet.h>  // Para funciones relacionadas con direcciones de red
-#include <poll.h>       // Para poll
-#include <cstdlib> // Para atoi
-#include "Cliente.hpp"
+#include <cstring>    // For memset and strerror
+#include <unistd.h>   // For close
+#include <fcntl.h>    // For fcntl and O_NONBLOCK
+#include <netinet/in.h> // For sockaddr_in, INADDR_ANY, htons
+#include <arpa/inet.h>  // For network address functions
+#include <poll.h>       // For poll
+#include <cstdlib> // For atoi
+#include "Client.hpp"
 #include "IRCServer.hpp"
-#include "Evento.hpp"
+#include "Message.hpp"
 
-class Servidor {
+class IRCServer {
 	private:
-		int puerto;
+		int port;
 		std::string password;
-		int servidor_fd;
+		int server_fd;
 		std::vector<struct pollfd> fds;
-		std::map<int, Cliente*> clientes; // Mapeo de FD a objetos Cliente
-		std::map<std::string, Canal> canales; // Mapa para gestionar los canales
-		Evento evento; // Nuevo atributo para manejar eventos
+		std::map<int, Client*> clients; // FD to Client object mapping
+		std::map<std::string, Channel> channels; // Map to manage channels
+		Message message; // New attribute to handle events
 
-		void aceptar_cliente();
-		void procesar_cliente(int cliente_fd);
-		void eliminar_cliente(int cliente_fd);
+		void acceptClient();
+		void processClient(int client_fd);
+		void removeClient(int client_fd);
 
 	public:
-		Servidor(int puerto, const std::string& password);
-		bool iniciar_servidor();
-		void ejecutar();
-		std::vector<std::string> obtenerCanalesDeCliente(int cliente_fd) const;
-	};
+		IRCServer(int port, const std::string& password);
+		bool startServer();
+		void run();
+		std::vector<std::string> getClientChannels(int client_fd) const;
+};
 
 #endif

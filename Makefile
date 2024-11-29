@@ -9,12 +9,12 @@ SRC_DIR = src/
 OBJ_DIR = obj/
 INC_DIR = inc/
 
-SRC		=	Canal \
-			Cliente \
-			Comandos \
-			Evento \
+SRC		=	Channel \
+			Client \
+			Commands \
 			IRCServer \
-			main
+			Main \
+			Message
 
 SRCS	= $(addprefix $(SRC_DIR), $(addsuffix .cpp, $(SRC)))
 OBJS	= $(addprefix $(OBJ_DIR), $(addsuffix .o, $(SRC)))
