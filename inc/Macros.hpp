@@ -16,6 +16,9 @@
 /* CHARACTERS*/
 #define CRLF "\r\n"
 
+/* TIMEOUT */
+#define REGISTRATION_TIMEOUT 45
+
 /* SYSTEM MESSAGES */
 #define RPL_CONNECTED(nick)							(": 001 " + nick + " : Welcome to the IRC server!" + CRLF)
 #define RPL_UMODEIS(host, channel, mode, user)  	":" + host + " MODE " + channel + " " + mode + " " + user + CRLF

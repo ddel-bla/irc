@@ -1,7 +1,9 @@
 #include "Client.hpp"
 
 /* PARAMETRIZED CONSTRUCTOR */
-Client::Client(int fd): socket_fd(fd), autenticate(false), registred(false) {}
+Client::Client(int fd): socket_fd(fd), autenticate(false), registred(false) {
+	connectionTime = std::time(NULL);
+}
 
 /* DESTRUCTOR */
 Client::~Client(void) {
@@ -46,6 +48,11 @@ bool Client::isAutenticate() const {
 // Is Registred
 bool Client::isRegistred() const {
     return registred;
+}
+
+// Get connectionTime
+std::time_t Client::getConnectionTime() const {
+        return connectionTime;
 }
 
 // Sets the nickname

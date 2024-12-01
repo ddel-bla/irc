@@ -8,8 +8,8 @@
 #include <cerrno>
 #include <cstring>
 #include <vector>
-#include <cstring>
 #include "Utils.hpp"
+#include <ctime>
 
 class Client {
 	private:
@@ -20,6 +20,7 @@ class Client {
 		std::string buffer;
 		bool	autenticate;
 		bool	registred;
+		std::time_t connectionTime;
 
 	public:
 		/* PARAMETRIZED CONSTRUCTOR */
@@ -36,6 +37,7 @@ class Client {
 		const std::string& getBuffer() const;
 		bool isAutenticate() const;
 		bool isRegistred() const;
+		std::time_t getConnectionTime() const;
 
 		/* SETTERS */
 		void setNickname(const std::string& nickname);
@@ -49,4 +51,4 @@ class Client {
 		void sendMessage(const std::string& message) const;
 };
 
-#endif
+#endif	// CLIENT.HPP

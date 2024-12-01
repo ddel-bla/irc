@@ -32,8 +32,10 @@ private:
 		void receiveData(int fd);
 		void process_command(std::string command, int fd);
 		void quit(std::string command, int fd);
+		void RemoveFds(int fd);
 
 		/* REGISTRATION METHODS */
+		void 	checkRegistrationTimeout(void);
 		void	authenticate(std::string command, Client& client);
 		void	registerNickname(std::string command, Client& client);
 		void	registerUsername(std::string command, Client& client);
@@ -47,4 +49,4 @@ public:
 		std::vector<std::string> getClientChannels(int client_fd) const;
 };
 
-#endif
+#endif	//IRCServer.hpp
