@@ -7,17 +7,16 @@
 #include "Client.hpp"
 
 class Message {
-public:
-	void sendToClient(int client_fd, const std::string& message);
+	public:
+		void sendToClient(int client_fd, const std::string& message);
 
-	void sendToChannel(const std::string& channel_name, const std::string& message,
-					int exclude_fd, const std::map<std::string, Channel>& channels);
 
-	void sendToAll(const std::string& message, int exclude_fd,
-				const std::map<std::string, Channel>& channels);
+		void sendToChannel(const std::string& channel_name, const std::string& message,
+						const std::map<std::string, Channel>& channels, int exclude_fd = -1);
 
-	void notifyEvent(const std::string& event_type, const std::string& nickname, int exclude_fd,
-					const std::map<std::string, Channel>& channels);
+		void sendToAll(const std::string& message,
+					const std::map<std::string, Channel>& channels, int exclude_fd = -1);
+
 };
 
 #endif // MESSAGE_HPP

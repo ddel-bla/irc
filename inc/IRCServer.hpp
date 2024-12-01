@@ -30,7 +30,6 @@ class IRCServer {
 		IRCServer(int port, const std::string& password);
 		bool startServer();
 		void run();
-		std::vector<std::string> getClientChannels(int client_fd) const;
 };
 
 #endif

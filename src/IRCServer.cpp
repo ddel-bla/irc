@@ -114,7 +114,7 @@ void IRCServer::acceptClient() {
     // Notificar la conexión al canal
 	std::string join_message = new_client->getNickname() + " has joined " + dummy_channel_name + "\n";
 
-    message.sendToChannel(dummy_channel_name, join_message, -1, channels);
+    message.sendToChannel(dummy_channel_name, join_message, channels);
 
     // Agregar el cliente a la lista de poll fds
     struct pollfd new_client_fd;
@@ -135,7 +135,7 @@ void IRCServer::processClient(int client_fd) {
 			// Client disconnected
 			Client* client = clients[client_fd];
 			std::string msg = "TO DO " + std::string(client->getNickname()) + " is disconnected";
-			message.sendToAll(msg, client_fd, channels);
+			message.sendToAll(msg, channels, client_fd);
 		} else {
 			std::cerr << "Error receiving data: " << strerror(errno) << std::endl;
 		}
@@ -145,7 +145,7 @@ void IRCServer::processClient(int client_fd) {
 	}
 
 	buffer[bytes_read] = '\0';
-	message.sendToAll(buffer, client_fd, channels);
+	message.sendToAll(buffer, channels, client_fd);
 	std::cout << "Message received from FD " << client_fd << ": " << buffer;
 }
 
@@ -163,16 +163,4 @@ void IRCServer::removeClient(int client_fd) {
 			break;
 		}
 	}
-}
-
-// Retrieves the channels a client is part of
-std::vector<std::string> IRCServer::getClientChannels(int client_fd) const {
-	std::vector<std::string> clientChannels;
-
-	for (std::map<std::string, Channel>::const_iterator it = channels.begin(); it != channels.end(); ++it) {
-		if (it->second.isMember(client_fd)) {
-			clientChannels.push_back(it->first);
-		}
-	}
-	return clientChannels;
 }
