@@ -3,6 +3,8 @@
 
 #include <string>
 #include <map>
+#include <iostream>
+#include <sys/socket.h> // Para `send`
 #include "Channel.hpp"
 #include "Client.hpp"
 

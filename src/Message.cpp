@@ -1,6 +1,4 @@
 #include "Message.hpp"
-#include <iostream>
-#include <sys/socket.h> // Para `send`
 
 // Send a message to a single client
 void Message::sendToClient(int client_fd, const std::string& message) {

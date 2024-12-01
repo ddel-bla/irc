@@ -49,13 +49,16 @@ bool IRCServer::startServer() {
 
 // Main server loop
 void IRCServer::run() {
-	struct pollfd pfd;
+	struct	pollfd	pfd;
+	int				ret;
+	
 	pfd.fd = server_fd;
 	pfd.events = POLLIN;
-
 	fds.push_back(pfd);
-	while (true) {
-		int ret = poll(fds.data(), fds.size(), -1);
+
+	while (true)
+	{
+		ret = poll(fds.data(), fds.size(), -1);
 		if (ret < 0) {
 			std::cerr << "Error in poll: " << strerror(errno) << std::endl;
 			break;
@@ -73,10 +76,11 @@ void IRCServer::run() {
 	}
 }
 
-void IRCServer::acceptClient() {
-    sockaddr_in client_address;
-    socklen_t address_length = sizeof(client_address);
-    int client_fd = accept(server_fd, (struct sockaddr*)&client_address, &address_length);
+void IRCServer::acceptClient()
+{
+    sockaddr_in	client_address;
+    socklen_t	address_length = sizeof(client_address);
+    int			client_fd = accept(server_fd, (struct sockaddr*)&client_address, &address_length);
 
     if (client_fd < 0) {
         if (errno != EWOULDBLOCK) {
@@ -122,7 +126,8 @@ void IRCServer::acceptClient() {
 }
 
 // Processes messages from a client
-void IRCServer::processClient(int client_fd) {
+void IRCServer::processClient(int client_fd)
+{
 	char buffer[512];
 	int bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
 
@@ -146,7 +151,8 @@ void IRCServer::processClient(int client_fd) {
 }
 
 // Removes a disconnected client
-void IRCServer::removeClient(int client_fd) {
+void IRCServer::removeClient(int client_fd)
+{
 	std::map<int, Client*>::iterator it = clients.find(client_fd);
 	if (it != clients.end()) {
 		delete it->second; // Free client memory
@@ -165,7 +171,7 @@ void IRCServer::receiveData(int fd)
 {
 	char		buffer[512];
 	size_t		bytes;
-	Client*		cliente = clients[fd];
+	Client*		client = clients[fd];
 	std::vector<std::string> commands;
 
 	memset(buffer, 0, sizeof(buffer));
@@ -173,26 +179,31 @@ void IRCServer::receiveData(int fd)
 
 	if (bytes <= 0)
 	{
-		// CLIENT DISCONECTION
-		std::cout << "notify desconection.." << std::endl;
+		if (bytes == 0) {
+			// Client disconnected
+			std::string msg = "TO DO " + std::string(client->getNickname()) + " is disconnected";
+			message.sendToAll(msg, fd, channels);
+		} else {
+			std::cerr << "Error receiving data: " << strerror(errno) << std::endl;
+		}
 		close(fd);
 		removeClient(fd);
 		return;
 	}
     
-    cliente->setBuffer(buffer);
+    client->setBuffer(buffer);
 
-    if (cliente->getBuffer().find_first_of(CRLF) == std::string::npos)
+    if (client->getBuffer().find_first_of(CRLF) == std::string::npos)
         return;
 
     // SPLIT BY '\r\n'
-    commands = Utils::split(cliente->getBuffer(), CRLF);
+    commands = Utils::split(client->getBuffer(), CRLF);
 	
     // PROCESS EACH COMMAND
     for (size_t i = 0; i < commands.size(); i++)
         process_command(commands[i], fd);
 
-    cliente->clearBuffer();
+    client->clearBuffer();
 }
 
 void IRCServer::process_command(std::string command, int fd)
@@ -243,6 +254,8 @@ void IRCServer::quit(std::string command, int fd)
 	removeClient(fd);
 }
 
+
+/* REGISTRATION PROCESS */
 void	IRCServer::authenticate(std::string command, Client& client)
 {
 	std::vector<std::string>    split_command;
@@ -385,6 +398,9 @@ bool	IRCServer::isNicknameTaken(const std::string nickname)
 
 	return (false);
 }
+
+
+/* CHANNEL */
 
 // Retrieves the channels a client is part of
 std::vector<std::string> IRCServer::getClientChannels(int client_fd) const {
