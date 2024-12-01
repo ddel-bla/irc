@@ -3,20 +3,18 @@
 
 #include <string>
 #include <map>
-#include <vector>
-#include "Client.hpp"
 #include "Channel.hpp"
 
 class Message {
-	public:
-		Message();
+public:
+    void sendToAll(const std::string& message, int exclude_fd,
+                   const std::map<std::string, Channel>& channels);
 
-		void sendGlobalMessage(const std::string& message, const std::map<int, Client*>& clients, int client_fd = -1);
-		void sendClientMessage(int client_fd, const std::string& message, const std::map<int, Client*>& clients);
-		void sendChannelMessage(const std::string& channel, const std::string& message, const std::map<std::string, Channel>& channels, int client_fd = -1);
+    void sendToChannel(const std::string& channel_name, const std::string& message,
+                       int exclude_fd, const std::map<std::string, Channel>& channels);
 
-		void notifyConnection(int client_fd, const std::string& nickname, const std::map<int, Client*>& clients);
-		void notifyDisconnection(int client_fd, const std::string& nickname, const std::map<int, Client*>& clients);
+    void notifyEvent(const std::string& event_type, const std::string& nickname, int exclude_fd,
+                     const std::map<std::string, Channel>& channels);
 };
 
-#endif
+#endif // MESSAGE_HPP
