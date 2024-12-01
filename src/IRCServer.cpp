@@ -101,7 +101,8 @@ void IRCServer::acceptClient() {
 	clients[client_fd] = new_client;
 
 	// Notify connection using Event
-	//message.notifyConnection(client_fd, new_client->getNickname(), clients);
+	std::string msg = "TO DO " + std::string(new_client->getNickname());
+	message.sendToAll(msg, client_fd, channels);
 
 	// Add the client to the list of poll fds
 	struct pollfd new_client_fd;
@@ -120,8 +121,9 @@ void IRCServer::processClient(int client_fd) {
 	if (bytes_read <= 0) {
 		if (bytes_read == 0) {
 			// Client disconnected
-			//Client* client = clients[client_fd];
-			//message.notifyDisconnection(client_fd, client->getNickname(), clients);
+			Client* client = clients[client_fd];
+			std::string msg = "TO DO " + std::string(client->getNickname());
+			message.sendToAll(msg, client_fd, channels);
 		} else {
 			std::cerr << "Error receiving data: " << strerror(errno) << std::endl;
 		}
@@ -131,8 +133,8 @@ void IRCServer::processClient(int client_fd) {
 	}
 
 	buffer[bytes_read] = '\0';
-	//message.sendGlobalMessage(buffer, clients);
-	std::cout << "Message received from FD " << client_fd << ": " << buffer << std::endl;
+	message.sendToAll(buffer, client_fd, channels);
+	std::cout << "Message received from FD " << client_fd << ": " << buffer;
 }
 
 // Removes a disconnected client
