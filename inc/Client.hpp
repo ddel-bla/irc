@@ -1,5 +1,5 @@
-#ifndef CLIENTE_HPP
-#define CLIENTE_HPP
+#ifndef CLIENT_HPP
+#define CLIENT_HPP
 
 #include <string>
 #include <unistd.h>
@@ -8,8 +8,10 @@
 #include <cerrno>
 #include <cstring>
 #include <vector>
+#include <cstring>
+#include "Utils.hpp"
 
-class Cliente {
+class Client {
 	private:
 		int socket_fd;
 		std::string nickname;
@@ -21,10 +23,10 @@ class Cliente {
 
 	public:
 		/* PARAMETRIZED CONSTRUCTOR */
-		Cliente(int fd);
+		Client(int fd);
 		
 		/* DESTRUCTOR */
-		~Cliente();
+		~Client();
 
 		/* GETTERS */
 		int getSocketFD() const;
@@ -44,7 +46,7 @@ class Cliente {
 
 		/* METHODS */
 		void clearBuffer(void);
-		void enviarMensaje(const std::string& mensaje) const;
+		void sendMessage(const std::string& message) const;
 };
 
 #endif

@@ -1,54 +1,50 @@
 #ifndef IRCSERVER_HPP
 #define IRCSERVER_HPP
 
-#include <cstring>    // Para memset y strerror
-#include <unistd.h>   // Para close
-#include <fcntl.h>    // Para fcntl y O_NONBLOCK
-#include <netinet/in.h> // Para sockaddr_in, INADDR_ANY, htons
-#include <arpa/inet.h>  // Para funciones relacionadas con direcciones de red
-#include <poll.h>       // Para poll
-#include <cstdlib> // Para atoi
-#include "Cliente.hpp"
+#include <cstring>    // For memset and strerror
+#include <unistd.h>   // For close
+#include <fcntl.h>    // For fcntl and O_NONBLOCK
+#include <netinet/in.h> // For sockaddr_in, INADDR_ANY, htons
+#include <arpa/inet.h>  // For network address functions
+#include <poll.h>       // For poll
+#include <cstdlib> // For atoi
+#include <iostream>
+#include "Client.hpp"
+#include "IRCServer.hpp"
+#include "Message.hpp"
 #include "Macros.hpp"
-#include "Comandos.hpp"
-#include "Evento.hpp"
 
-class Servidor
+class IRCServer
 {
-	private:
-		/* PARAMETROS DE ENTRADA */
-		int			puerto;		
+private:
+		int	port;
 		std::string password;
+		int server_fd;
+		std::vector<struct pollfd> fds;
+		std::map<int, Client*> clients; // FD to Client object mapping
+		std::map<std::string, Channel> channels; // Map to manage channels
+		Message message; // New attribute to handle events
 
-		/* OTROS*/
-		int 		servidor_fd;		// FD DEL SERVIDOR
-		std::vector<struct pollfd> fds; 
-		std::map<int, Cliente*> clientes; // Mapeo de FD a objetos Cliente
-		std::map<std::string, Canal> canales; // Mapa para gestionar los canales
-		Evento evento; // Nuevo atributo para manejar eventos
-		Comando command;
+		void acceptClient();
+		void processClient(int client_fd);
+		void removeClient(int client_fd);
 
-		void aceptar_cliente();
-		void procesar_cliente(int cliente_fd);
-		void eliminar_cliente(int cliente_fd);
-		void manejar_comando(int cliente_fd, const std::string& comando);
-		void enviar_mensaje(int cliente_fd, const std::string& mensaje);
 		void receiveData(int fd);
 		void process_command(std::string command, int fd);
 		void quit(std::string command, int fd);
 
 		/* REGISTRATION METHODS */
-		void	authenticate(std::string command, Cliente& client);
-		void	registerNickname(std::string command, Cliente& client);
-		void	registerUsername(std::string command, Cliente& client);
+		void	authenticate(std::string command, Client& client);
+		void	registerNickname(std::string command, Client& client);
+		void	registerUsername(std::string command, Client& client);
 		bool	isValidNickname(const std::string nickname);
 		bool	isNicknameTaken(const std::string nickname);
 
-	public:
-		Servidor(int puerto, const std::string& password);
-		bool iniciar_servidor();
-		void ejecutar();
-		std::vector<std::string> obtenerCanalesDeCliente(int cliente_fd) const;
-	};
+public:
+		IRCServer(int port, const std::string& password);
+		bool startServer();
+		void run();
+		std::vector<std::string> getClientChannels(int client_fd) const;
+};
 
 #endif

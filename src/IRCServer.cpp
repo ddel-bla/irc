@@ -1,74 +1,70 @@
 #include "IRCServer.hpp"
-#include "Evento.hpp"
-#include <iostream>
-#include <cstring>   // Para strerror
-#include <unistd.h>  // Para close
 
-// Constructor
-Servidor::Servidor(int puerto, const std::string& password): puerto(puerto), password(password), servidor_fd(-1) {}
+/* PARAMETRIZED CONSTRUCTOR */
+IRCServer::IRCServer(int port, const std::string& password): port(port), password(password), server_fd(-1) {}
 
-// Inicia el servidor
-bool Servidor::iniciar_servidor(void)
-{
-	servidor_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (servidor_fd < 0) {
-		std::cerr << "Error al crear el socket: " << strerror(errno) << std::endl;
+/* METHODS */
+// Starts the server
+bool IRCServer::startServer() {
+	server_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (server_fd < 0) {
+		std::cerr << "Error creating socket: " << strerror(errno) << std::endl;
 		return false;
 	}
 
 	int opt = 1;
-	if (setsockopt(servidor_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-		std::cerr << "Error en setsockopt: " << strerror(errno) << std::endl;
-		close(servidor_fd);
+	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+		std::cerr << "Error in setsockopt: " << strerror(errno) << std::endl;
+		close(server_fd);
 		return false;
 	}
 
-	if (fcntl(servidor_fd, F_SETFL, O_NONBLOCK) < 0) {
-		std::cerr << "Error al configurar el modo no bloqueante: " << strerror(errno) << std::endl;
-		close(servidor_fd);
+	if (fcntl(server_fd, F_SETFL, O_NONBLOCK) < 0) {
+		std::cerr << "Error setting non-blocking mode: " << strerror(errno) << std::endl;
+		close(server_fd);
 		return false;
 	}
 
-	sockaddr_in direccion;
-	std::memset(&direccion, 0, sizeof(direccion));
-	direccion.sin_family = AF_INET;
-	direccion.sin_addr.s_addr = INADDR_ANY;
-	direccion.sin_port = htons(puerto);
+	sockaddr_in address;
+	std::memset(&address, 0, sizeof(address));
+	address.sin_family = AF_INET;
+	address.sin_addr.s_addr = INADDR_ANY;
+	address.sin_port = htons(port);
 
-	if (bind(servidor_fd, (struct sockaddr*)&direccion, sizeof(direccion)) < 0) {
-		std::cerr << "Error en bind: " << strerror(errno) << std::endl;
-		close(servidor_fd);
+	if (bind(server_fd, (struct sockaddr*)&address, sizeof(address)) < 0) {
+		std::cerr << "Error in bind: " << strerror(errno) << std::endl;
+		close(server_fd);
 		return false;
 	}
 
-	if (listen(servidor_fd, 5) < 0) {
-		std::cerr << "Error en listen: " << strerror(errno) << std::endl;
-		close(servidor_fd);
+	if (listen(server_fd, 5) < 0) {
+		std::cerr << "Error in listen: " << strerror(errno) << std::endl;
+		close(server_fd);
 		return false;
 	}
 
-	std::cout << "Servidor iniciado en el puerto " << puerto << std::endl;
+	std::cout << "Server started on port " << port << std::endl;
 	return true;
 }
 
-// Bucle principal del servidor
-void Servidor::ejecutar() {
+// Main server loop
+void IRCServer::run() {
 	struct pollfd pfd;
-	pfd.fd = servidor_fd;
+	pfd.fd = server_fd;
 	pfd.events = POLLIN;
 
 	fds.push_back(pfd);
 	while (true) {
 		int ret = poll(fds.data(), fds.size(), -1);
 		if (ret < 0) {
-			std::cerr << "Error en poll: " << strerror(errno) << std::endl;
+			std::cerr << "Error in poll: " << strerror(errno) << std::endl;
 			break;
 		}
 
 		for (size_t i = 0; i < fds.size(); ++i) {
 			if (fds[i].revents & POLLIN) {
-				if (fds[i].fd == servidor_fd) {
-					aceptar_cliente();
+				if (fds[i].fd == server_fd) {
+					acceptClient();
 				} else {
 					receiveData(fds[i].fd);
 				}
@@ -77,91 +73,99 @@ void Servidor::ejecutar() {
 	}
 }
 
-// Acepta un nuevo cliente
-void Servidor::aceptar_cliente() {
-	sockaddr_in direccion_cliente;
-	socklen_t tam_direccion = sizeof(direccion_cliente);
-	int cliente_fd = accept(servidor_fd, (struct sockaddr*)&direccion_cliente, &tam_direccion);
+void IRCServer::acceptClient() {
+    sockaddr_in client_address;
+    socklen_t address_length = sizeof(client_address);
+    int client_fd = accept(server_fd, (struct sockaddr*)&client_address, &address_length);
 
-	if (cliente_fd < 0) {
-		if (errno != EWOULDBLOCK) {
-			std::cerr << "Error al aceptar cliente: " << strerror(errno) << std::endl;
-		}
-		return;
+    if (client_fd < 0) {
+        if (errno != EWOULDBLOCK) {
+            std::cerr << "Error accepting client: " << strerror(errno) << std::endl;
+        }
+        return;
+    }
+
+    if (fcntl(client_fd, F_SETFL, O_NONBLOCK) < 0) {
+        std::cerr << "Error setting client to non-blocking mode: " << strerror(errno) << std::endl;
+        close(client_fd);
+        return;
+    }
+
+    // Crear un cliente con valores predeterminados
+    Client* new_client = new Client(client_fd);
+    clients[client_fd] = new_client;
+
+	const std::string dummy_channel_name = "#dummy";
+
+	// Verifica si el canal #dummy existe, si no, lo inserta
+	std::map<std::string, Channel>::iterator it = channels.find(dummy_channel_name);
+	if (it == channels.end()) {
+		// El canal no existe, se inserta usando insert
+		channels.insert(std::make_pair(dummy_channel_name, Channel(dummy_channel_name)));
+		it = channels.find(dummy_channel_name);  // Obtener el iterador después de la inserción
 	}
+	// Agrega el cliente al canal #dummy
+	it->second.addMember(client_fd, new_client);
 
-	if (fcntl(cliente_fd, F_SETFL, O_NONBLOCK) < 0) {
-		std::cerr << "Error al configurar cliente en modo no bloqueante: " << strerror(errno) << std::endl;
-		close(cliente_fd);
-		return;
-	}
-	
-	// Crear un nuevo cliente con valores predeterminados
-	Cliente* nuevo_cliente = new Cliente(cliente_fd);
-	clientes[cliente_fd] = nuevo_cliente;
+    // Notificar la conexión al canal
+	std::string join_message = new_client->getNickname() + " has joined " + dummy_channel_name + "\n";
 
-	// Notificar conexión usando Evento
-	evento.notificarConexion(cliente_fd, nuevo_cliente->getNickname(), clientes);
+    message.sendToChannel(dummy_channel_name, join_message, -1, channels);
 
-	// Agregar el cliente a la lista de fds para poll
-	struct pollfd nuevo_cliente_fd;
-	nuevo_cliente_fd.fd = cliente_fd;
-	nuevo_cliente_fd.events = POLLIN;
-	fds.push_back(nuevo_cliente_fd);
+    // Agregar el cliente a la lista de poll fds
+    struct pollfd new_client_fd;
+    new_client_fd.fd = client_fd;
+    new_client_fd.events = POLLIN;
+    fds.push_back(new_client_fd);
 
-	std::cout << "Un nuevo cliente se ha conectado. FD: " << cliente_fd << std::endl;
+    std::cout << "New client connected. FD: " << client_fd << std::endl;
 }
 
-// Procesa mensajes de un cliente
-void Servidor::procesar_cliente(int cliente_fd) {
+// Processes messages from a client
+void IRCServer::processClient(int client_fd) {
 	char buffer[512];
-	int bytes_leidos = recv(cliente_fd, buffer, sizeof(buffer) - 1, 0);
+	int bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
 
-	if (bytes_leidos <= 0) {
-		if (bytes_leidos == 0) {
-			// Cliente desconectado
-			Cliente* cliente = clientes[cliente_fd];
-			evento.notificarDesconexion(cliente_fd, cliente->getNickname(), clientes);
+	if (bytes_read <= 0) {
+		if (bytes_read == 0) {
+			// Client disconnected
+			Client* client = clients[client_fd];
+			std::string msg = "TO DO " + std::string(client->getNickname()) + " is disconnected";
+			message.sendToAll(msg, client_fd, channels);
 		} else {
-			std::cerr << "Error al recibir datos: " << strerror(errno) << std::endl;
+			std::cerr << "Error receiving data: " << strerror(errno) << std::endl;
 		}
-		close(cliente_fd);
-		eliminar_cliente(cliente_fd);
+		close(client_fd);
+		removeClient(client_fd);
 		return;
 	}
 
-	buffer[bytes_leidos] = '\0';
-    evento.enviarMensajeGlobal(buffer, clientes);
-	std::cout << "Mensaje recibido de FD " << cliente_fd << ": " << buffer << std::endl;
-
+	buffer[bytes_read] = '\0';
+	message.sendToAll(buffer, client_fd, channels);
+	std::cout << "Message received from FD " << client_fd << ": " << buffer;
 }
 
-// Elimina un cliente desconectado
-void Servidor::eliminar_cliente(int cliente_fd) {
-	std::map<int, Cliente*>::iterator it = clientes.find(cliente_fd);
-	if (it != clientes.end()) {
-		delete it->second; // Liberar memoria del cliente
-		clientes.erase(it); // Eliminar del mapa
+// Removes a disconnected client
+void IRCServer::removeClient(int client_fd) {
+	std::map<int, Client*>::iterator it = clients.find(client_fd);
+	if (it != clients.end()) {
+		delete it->second; // Free client memory
+		clients.erase(it); // Remove from map
 	}
 
 	for (size_t i = 0; i < fds.size(); ++i) {
-		if (fds[i].fd == cliente_fd) {
+		if (fds[i].fd == client_fd) {
 			fds.erase(fds.begin() + i);
 			break;
 		}
 	}
 }
 
-void Servidor::enviar_mensaje(int cliente_fd, const std::string& mensaje) {
-    std::string mensaje_completo = mensaje + "\r\n";
-    send(cliente_fd, mensaje_completo.c_str(), mensaje_completo.size(), 0);
-}
-
-void Servidor::receiveData(int fd)
+void IRCServer::receiveData(int fd)
 {
 	char		buffer[512];
 	size_t		bytes;
-	Cliente*	cliente = clientes[fd];
+	Client*		cliente = clients[fd];
 	std::vector<std::string> commands;
 
 	memset(buffer, 0, sizeof(buffer));
@@ -170,9 +174,9 @@ void Servidor::receiveData(int fd)
 	if (bytes <= 0)
 	{
 		// CLIENT DISCONECTION
-		evento.notificarDesconexion(fd, cliente->getNickname(), clientes);
+		std::cout << "notify desconection.." << std::endl;
 		close(fd);
-		eliminar_cliente(fd);
+		removeClient(fd);
 		return;
 	}
     
@@ -191,10 +195,10 @@ void Servidor::receiveData(int fd)
     cliente->clearBuffer();
 }
 
-void Servidor::process_command(std::string command, int fd)
+void IRCServer::process_command(std::string command, int fd)
 {
 	std::vector<std::string> split_command;
-	Cliente	*cliente = clientes[fd];
+	Client	*cliente = clients[fd];
 
 	if (command.empty())
 		return ;
@@ -228,7 +232,7 @@ void Servidor::process_command(std::string command, int fd)
 	(void) fd;
 }
 
-void Servidor::quit(std::string command, int fd)
+void IRCServer::quit(std::string command, int fd)
 {
 	std::vector<std::string> split_command;
 
@@ -236,12 +240,12 @@ void Servidor::quit(std::string command, int fd)
 
 	std::cout << "Client disconnected" << std::endl;
 	close(fd);
-	eliminar_cliente(fd);
+	removeClient(fd);
 }
 
-void	Servidor::authenticate(std::string command, Cliente& client)
+void	IRCServer::authenticate(std::string command, Client& client)
 {
-	  std::vector<std::string>    split_command;
+	std::vector<std::string>    split_command;
     std::string                 enteredPassword;
 
     split_command = Utils::splitBySpaces(command);
@@ -270,7 +274,7 @@ void	Servidor::authenticate(std::string command, Cliente& client)
 		std::cout << ERR_NEEDMOREPARAMS(client.getNickname()) << std::endl;
 }
 
-void	Servidor::registerNickname(std::string command, Cliente& client)
+void	IRCServer::registerNickname(std::string command, Client& client)
 {
 	std::vector<std::string>	split_command;
 	size_t	command_len;
@@ -324,7 +328,7 @@ void	Servidor::registerNickname(std::string command, Cliente& client)
 	
 }
 
-void	Servidor::registerUsername(std::string command, Cliente& client)
+void	IRCServer::registerUsername(std::string command, Client& client)
 {
 	std::vector<std::string>	split_command;
 	size_t	command_len;
@@ -352,7 +356,7 @@ void	Servidor::registerUsername(std::string command, Cliente& client)
 		std::cout << ERR_NOTREGISTERED(std::string("*")) << std::endl;
 }
 
-bool	Servidor::isValidNickname(const std::string nickname)
+bool	IRCServer::isValidNickname(const std::string nickname)
 {	
 	// VALID CHARACTERS
     if (nickname.empty() || nickname[0] == '&' || nickname[0] == '#' || nickname[0] == ':')
@@ -363,23 +367,15 @@ bool	Servidor::isValidNickname(const std::string nickname)
             return (false);
     }
 
-    // // UNIQUE (not in use)
-    // for (std::map<int, Cliente*>::const_iterator it = clientes.begin(); it != clientes.end(); ++it){
-    //     Cliente* cliente = it->second;
-    //     if (cliente && cliente->getNickname() == nickname) {
-    //         return false;
-    //     }
-    // }
-
     return (true);
 }
 
-bool	Servidor::isNicknameTaken(const std::string nickname)
+bool	IRCServer::isNicknameTaken(const std::string nickname)
 {
-	std::map<int, Cliente*>:: const_iterator it;
-	Cliente* cliente;
+	std::map<int, Client*>:: const_iterator it;
+	Client* cliente;
 
-	for (it = clientes.begin(); it != clientes.end(); ++it)
+	for (it = clients.begin(); it != clients.end(); ++it)
 	{
         cliente = it->second;
         if (cliente && cliente->getNickname() == nickname) {
@@ -390,13 +386,14 @@ bool	Servidor::isNicknameTaken(const std::string nickname)
 	return (false);
 }
 
-std::vector<std::string> Servidor::obtenerCanalesDeCliente(int cliente_fd) const {
-    std::vector<std::string> canalesCliente;
+// Retrieves the channels a client is part of
+std::vector<std::string> IRCServer::getClientChannels(int client_fd) const {
+	std::vector<std::string> clientChannels;
 
-    for (std::map<std::string, Canal>::const_iterator it = canales.begin(); it != canales.end(); ++it) {
-        if (it->second.esMiembro(cliente_fd)) {
-            canalesCliente.push_back(it->first);
-        }
-    }
-    return canalesCliente;
+	for (std::map<std::string, Channel>::const_iterator it = channels.begin(); it != channels.end(); ++it) {
+		if (it->second.isMember(client_fd)) {
+			clientChannels.push_back(it->first);
+		}
+	}
+	return clientChannels;
 }
