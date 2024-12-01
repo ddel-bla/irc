@@ -76,41 +76,53 @@ void IRCServer::run() {
 		}
 	}
 }
-
-// Accepts a new client
 void IRCServer::acceptClient() {
-	sockaddr_in client_address;
-	socklen_t address_length = sizeof(client_address);
-	int client_fd = accept(server_fd, (struct sockaddr*)&client_address, &address_length);
+    sockaddr_in client_address;
+    socklen_t address_length = sizeof(client_address);
+    int client_fd = accept(server_fd, (struct sockaddr*)&client_address, &address_length);
 
-	if (client_fd < 0) {
-		if (errno != EWOULDBLOCK) {
-			std::cerr << "Error accepting client: " << strerror(errno) << std::endl;
-		}
-		return;
+    if (client_fd < 0) {
+        if (errno != EWOULDBLOCK) {
+            std::cerr << "Error accepting client: " << strerror(errno) << std::endl;
+        }
+        return;
+    }
+
+    if (fcntl(client_fd, F_SETFL, O_NONBLOCK) < 0) {
+        std::cerr << "Error setting client to non-blocking mode: " << strerror(errno) << std::endl;
+        close(client_fd);
+        return;
+    }
+
+    // Crear un cliente con valores predeterminados
+    Client* new_client = new Client(client_fd, "defaultNick", "defaultUser", "defaultHost");
+    clients[client_fd] = new_client;
+
+	const std::string dummy_channel_name = "#dummy";
+
+	// Verifica si el canal #dummy existe, si no, lo inserta
+	std::map<std::string, Channel>::iterator it = channels.find(dummy_channel_name);
+	if (it == channels.end()) {
+		// El canal no existe, se inserta usando insert
+		channels.insert(std::make_pair(dummy_channel_name, Channel(dummy_channel_name)));
+		it = channels.find(dummy_channel_name);  // Obtener el iterador después de la inserción
 	}
 
-	if (fcntl(client_fd, F_SETFL, O_NONBLOCK) < 0) {
-		std::cerr << "Error setting client to non-blocking mode: " << strerror(errno) << std::endl;
-		close(client_fd);
-		return;
-	}
+	// Agrega el cliente al canal #dummy
+	it->second.addMember(client_fd, new_client);
 
-	// Create a new client with default values
-	Client* new_client = new Client(client_fd, "defaultNick", "defaultUser", "defaultHost");
-	clients[client_fd] = new_client;
+    // Notificar la conexión al canal
+	std::string join_message = new_client->getNickname() + " has joined " + dummy_channel_name + "\n";
 
-	// Notify connection using Event
-	std::string msg = "TO DO " + std::string(new_client->getNickname());
-	message.sendToAll(msg, client_fd, channels);
+    message.sendToChannel(dummy_channel_name, join_message, -1, channels);
 
-	// Add the client to the list of poll fds
-	struct pollfd new_client_fd;
-	new_client_fd.fd = client_fd;
-	new_client_fd.events = POLLIN;
-	fds.push_back(new_client_fd);
+    // Agregar el cliente a la lista de poll fds
+    struct pollfd new_client_fd;
+    new_client_fd.fd = client_fd;
+    new_client_fd.events = POLLIN;
+    fds.push_back(new_client_fd);
 
-	std::cout << "New client connected. FD: " << client_fd << std::endl;
+    std::cout << "New client connected. FD: " << client_fd << std::endl;
 }
 
 // Processes messages from a client
@@ -122,7 +134,7 @@ void IRCServer::processClient(int client_fd) {
 		if (bytes_read == 0) {
 			// Client disconnected
 			Client* client = clients[client_fd];
-			std::string msg = "TO DO " + std::string(client->getNickname());
+			std::string msg = "TO DO " + std::string(client->getNickname()) + " is disconnected";
 			message.sendToAll(msg, client_fd, channels);
 		} else {
 			std::cerr << "Error receiving data: " << strerror(errno) << std::endl;
