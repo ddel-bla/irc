@@ -10,6 +10,13 @@ bool areArgsValid(std::string& port, std::string& passwd) {
     return true;
 }
 
+void start_signals(void)
+{
+    signal(SIGINT, IRCServer::handle_signals);
+    signal(SIGQUIT, IRCServer::handle_signals);
+    signal(SIGPIPE, SIG_IGN);
+}
+
 int main(int argc, char* argv[]) {
     if (argc != 3) {
         std::cerr << "Usage: ./ircserv <port> <password>" << std::endl;
@@ -26,6 +33,7 @@ int main(int argc, char* argv[]) {
 
     try {
         IRCServer server(std::atoi(port.c_str()), password);
+        start_signals();
         if (!server.startServer()) {
             std::cerr << "Error initializing server..." << std::endl;
             return EXIT_FAILURE;

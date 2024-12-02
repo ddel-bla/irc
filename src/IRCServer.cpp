@@ -1,5 +1,7 @@
 #include "IRCServer.hpp"
 
+bool IRCServer::signal = false;
+
 /* PARAMETRIZED CONSTRUCTOR */
 IRCServer::IRCServer(int port, const std::string& password): port(port), password(password), server_fd(-1) {}
 
@@ -54,9 +56,9 @@ void IRCServer::run() {
 	pfd.fd = server_fd;
 	pfd.events = POLLIN;
 	fds.push_back(pfd);
-	while (true) {
+	while (!IRCServer::signal) {
 		int ret = poll(fds.data(), fds.size(), 1000); // Timeout 1 sec
-		if (ret < 0) {
+		if (ret < 0  && !IRCServer::signal) {
 			std::cerr << "Error in poll: " << strerror(errno) << std::endl;
 			break;
 		}
@@ -74,6 +76,7 @@ void IRCServer::run() {
 			}
 		}
 	}
+	message.sendToChannel("#dummy", "Disconecting...", -1, channels);
 }
 
 void IRCServer::RemoveFds(int fd){
@@ -81,28 +84,6 @@ void IRCServer::RemoveFds(int fd){
 		if (this->fds[i].fd == fd)
 			{this->fds.erase(this->fds.begin() + i); return;}
 	}
-}
-
-void IRCServer::checkRegistrationTimeout()
-{
-    std::time_t now = std::time(NULL);
-    
-    for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ) {
-        Client* cliente = it->second;
-
-        if (!cliente->isRegistred() && std::difftime(now, cliente->getConnectionTime()) > REGISTRATION_TIMEOUT) {
-			std::cout << "Cliente no completó el registro a tiempo. Desconectando..." << std::endl;
-			close(it->first);
-			RemoveFds(it->first);
-            delete cliente;
-            
-            std::map<int, Client*>::iterator toErase = it;
-            ++it;
-			clients.erase(toErase);
-        } else {
-            ++it; // Avanzar al siguiente iterador si no se borra
-        }
-    }
 }
 
 void IRCServer::acceptClient()
@@ -188,10 +169,8 @@ void IRCServer::removeClient(int client_fd)
 
         // Notificar la desconexión del cliente a través del evento.
 
-        // Cerrar el socket del cliente.
         close(client_fd);
 
-        // Eliminar al cliente del mapa y liberar su memoria.
         delete cliente;
         clients.erase(it);
     }
@@ -294,6 +273,28 @@ void IRCServer::quit(std::string command, int fd)
 }
 
 /* REGISTRATION PROCESS */
+void	IRCServer::checkRegistrationTimeout(void)
+{
+    std::time_t now = std::time(NULL);
+    
+    for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ) {
+        Client* cliente = it->second;
+
+        if (!cliente->isRegistred() && std::difftime(now, cliente->getConnectionTime()) > REGISTRATION_TIMEOUT) {
+			std::cout << "Cliente no completó el registro a tiempo. Desconectando..." << std::endl;
+			close(it->first);
+			RemoveFds(it->first);
+            delete cliente;
+            
+            std::map<int, Client*>::iterator toErase = it;
+            ++it;
+			clients.erase(toErase);
+        } else {
+            ++it; // Avanzar al siguiente iterador si no se borra
+        }
+    }
+}
+
 void	IRCServer::authenticate(std::string command, Client& client)
 {
 	std::vector<std::string>    split_command;
@@ -451,3 +452,10 @@ std::vector<std::string> IRCServer::getClientChannels(int client_fd) const {
 	return clientChannels;
 }
 
+
+/* SIGNALS */
+void	IRCServer::handle_signals(int signum)
+{
+	signal = true;
+	(void) signum;
+}

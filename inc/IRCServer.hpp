@@ -9,6 +9,7 @@
 #include <poll.h>       // For poll
 #include <cstdlib> // For atoi
 #include <iostream>
+#include <csignal>
 #include "Client.hpp"
 #include "IRCServer.hpp"
 #include "Message.hpp"
@@ -17,6 +18,7 @@
 class IRCServer
 {
 private:
+		/* ATRIBUTES */
 		int	port;
 		std::string password;
 		int server_fd;
@@ -25,6 +27,10 @@ private:
 		std::map<std::string, Channel> channels; // Map to manage channels
 		Message message; // New attribute to handle events
 
+		/* GLOBAL VARIABLES*/
+		static bool signal;
+
+		/* METHODS */
 		void acceptClient();
 		void processClient(int client_fd);
 		void removeClient(int client_fd);
@@ -43,9 +49,16 @@ private:
 		bool	isNicknameTaken(const std::string nickname);
 
 public:
+		/* PARAMETRIZED CONSTRUCTOR*/
 		IRCServer(int port, const std::string& password);
+
+		/* MAIN METHODS*/
 		bool startServer();
 		void run();
+		
+		/* SIGNAL HANDLING*/
+		static void	handle_signals(int signal);
+
 		std::vector<std::string> getClientChannels(int client_fd) const;
 };
 
