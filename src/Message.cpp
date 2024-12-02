@@ -1,38 +1,54 @@
 #include "Message.hpp"
 
-// Send a message to a single client
+// Sends a message to a specific client
 void Message::sendToClient(int client_fd, const std::string& message) {
-	if (send(client_fd, message.c_str(), message.size(), 0) < 0)
-		std::cerr << "Error sending message to client " << client_fd << std::endl;
+	// Ensures the message is correctly sent to the client
+	send(client_fd, message.c_str(), message.length(), 0);
 }
 
-// Send a message to all members of a specific channel
+// Sends a message to all members of a specific channel
 void Message::sendToChannel(const std::string& channel_name, const std::string& message,
-							int exclude_fd, const std::map<std::string, Channel>& channels) {
+							const std::map<std::string, Channel>& channels, int exclude_fd) {
+	// Looks for the channel in the map
 	std::map<std::string, Channel>::const_iterator it = channels.find(channel_name);
-	if (it != channels.end()) {
-		const Channel& channel = it->second;
-		const std::map<int, Client*>& members = channel.getMembers();
-		for (std::map<int, Client*>::const_iterator member = members.begin(); member != members.end(); ++member) {
-			if (member->first != exclude_fd)
-				sendToClient(member->first, message);
-		}
-	} else {
+	if (it == channels.end()) {
 		std::cerr << "Channel " << channel_name << " not found." << std::endl;
+		return;
+	}
+
+	const std::map<int, Client*>& members = it->second.getMembers();
+	for (std::map<int, Client*>::const_iterator member_it = members.begin(); member_it != members.end(); ++member_it) {
+		int client_fd = member_it->first;
+
+		// Skip the specified descriptor, if applicable
+		if (exclude_fd != -1 && client_fd == exclude_fd)
+			continue;
+
+		sendToClient(client_fd, message);
 	}
 }
 
-// Send a message to all clients across all channels
-void Message::sendToAll(const std::string& message, int exclude_fd,
-						const std::map<std::string, Channel>& channels) {
-	for (std::map<std::string, Channel>::const_iterator it = channels.begin(); it != channels.end(); ++it) {
-		sendToChannel(it->first, message, exclude_fd, channels);
-	}
-}
+// Sends a message to all clients that are members of any channel in which the given client (identified by client_fd) is also a member.
+void Message::sendToAll(const std::string& message,
+                        const std::map<std::string, Channel>& channels, int client_fd) {
+    // Iterate through all channels
+    for (std::map<std::string, Channel>::const_iterator it = channels.begin(); it != channels.end(); ++it) {
+        const Channel& channel = it->second;
 
-// Notify an event (connection, disconnection, etc.) to all clients across channels
-void Message::notifyEvent(const std::string& event_type, const std::string& nickname, int exclude_fd,
-						const std::map<std::string, Channel>& channels) {
-	std::string event_message = "[" + event_type + "] " + nickname + " has joined/left.";
-	sendToAll(event_message, exclude_fd, channels);
+        // Check if the given client_fd is a member of the channel
+        if (channel.isMember(client_fd)) {
+            const std::map<int, Client*>& members = channel.getMembers();
+
+            // Send the message to all other members of this channel
+            for (std::map<int, Client*>::const_iterator member_it = members.begin(); member_it != members.end(); ++member_it) {
+                int target_fd = member_it->first;
+
+                // Skip sending to the client_fd itself
+                if (target_fd == client_fd)
+                    continue;
+
+                sendToClient(target_fd, message);
+            }
+        }
+    }
 }

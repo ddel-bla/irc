@@ -58,8 +58,6 @@ public:
 		
 		/* SIGNAL HANDLING*/
 		static void	handle_signals(int signal);
-
-		std::vector<std::string> getClientChannels(int client_fd) const;
 };
 
 #endif	//IRCServer.hpp
