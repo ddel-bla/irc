@@ -18,3 +18,6 @@ https://modern.ircdocs.horse/
 ## Iniciar Cliente vía Software de terceros
 https://hexchat.github.io/ <- Yo instalé este
 https://irssi.org/
+
+La clave para entender cómo funcionan los comandos es ir a Hexchat -> Window -> Raw Log. 
+Después por ejemplo /join #test
