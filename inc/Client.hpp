@@ -13,13 +13,13 @@
 
 class Client {
 	private:
-		int socket_fd;
+		int 		fd;
 		std::string nickname;
 		std::string username;
 		std::string hostname;
 		std::string buffer;
-		bool	autenticate;
-		bool	registred;
+		bool		autenticate;
+		bool		registred;
 		std::time_t connectionTime;
 
 	public:
@@ -29,8 +29,12 @@ class Client {
 		/* DESTRUCTOR */
 		~Client();
 
+		/* METHODS */
+		void clearBuffer(void);
+		void sendMessage(const std::string& message) const;
+		
 		/* GETTERS */
-		int getSocketFD() const;
+		int getFd() const;
 		const std::string& getNickname() const;
 		const std::string& getUsername() const;
 		const std::string& getHostname() const;
@@ -40,15 +44,12 @@ class Client {
 		std::time_t getConnectionTime() const;
 
 		/* SETTERS */
+		void setFd(int fd);
 		void setNickname(const std::string& nickname);
 		void setUsername(const std::string& username);
 		void setBuffer(const std::string& buffer);
 		void setAutenticate(const bool autenticate);
 		void setRegistred(const bool registred);
-
-		/* METHODS */
-		void clearBuffer(void);
-		void sendMessage(const std::string& message) const;
 };
 
 #endif	// CLIENT.HPP

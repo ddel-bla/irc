@@ -14,31 +14,32 @@
 #include "IRCServer.hpp"
 #include "Message.hpp"
 #include "Macros.hpp"
+#include "Commands.hpp"
 
 class IRCServer
 {
 private:
 		/* ATRIBUTES */
-		int	port;
-		std::string password;
-		int server_fd;
-		std::vector<struct pollfd> fds;
-		std::map<int, Client*> clients; // FD to Client object mapping
-		std::map<std::string, Channel> channels; // Map to manage channels
-		Message message; // New attribute to handle events
+		int			port;
+		std::string	password;
+		int			server_fd;
+		std::vector<struct pollfd>		fds;
+		std::map<int, Client*>			clients; // FD to Client object mapping
+		std::map<std::string, Channel>	channels; // Map to manage channels
+		Message 						message; // New attribute to handle events
 
-		/* GLOBAL VARIABLES*/
+		/* GLOBAL VARIABLES */
 		static bool signal;
-
+		
 		/* METHODS */
 		void acceptClient();
 		void processClient(int client_fd);
 		void removeClient(int client_fd);
-
 		void receiveData(int fd);
 		void process_command(std::string command, int fd);
 		void quit(std::string command, int fd);
 		void RemoveFds(int fd);
+		void printPollFDsAndClients();
 
 		/* REGISTRATION METHODS */
 		void 	checkRegistrationTimeout(void);
@@ -47,6 +48,15 @@ private:
 		void	registerUsername(std::string command, Client& client);
 		bool	isValidNickname(const std::string nickname);
 		bool	isNicknameTaken(const std::string nickname);
+
+		/* PRIVMSG */
+		void		privmsg(const std::string& command, Client& clien);
+		std::string	format_privmsg(const std::string& command, Client& sender);
+		void		process_destinataries(std::vector<std::string> destinataries, Client client, std::string& msg);
+		int			findFdByNickname(const std::string& nickname);
+
+		/* JOIN */
+		void	join(const std::string& command, Client& client);
 
 public:
 		/* PARAMETRIZED CONSTRUCTOR*/

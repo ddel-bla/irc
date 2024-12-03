@@ -108,22 +108,22 @@ void IRCServer::acceptClient()
     Client* new_client = new Client(client_fd);
     clients[client_fd] = new_client;
 
-	const std::string dummy_channel_name = "#dummy";
+	// const std::string dummy_channel_name = "#dummy";
 
-	// Verifica si el canal #dummy existe, si no, lo inserta
-	std::map<std::string, Channel>::iterator it = channels.find(dummy_channel_name);
-	if (it == channels.end()) {
-		// El canal no existe, se inserta usando insert
-		channels.insert(std::make_pair(dummy_channel_name, Channel(dummy_channel_name)));
-		it = channels.find(dummy_channel_name);  // Obtener el iterador después de la inserción
-	}
-	// Agrega el cliente al canal #dummy
-	it->second.addMember(client_fd, new_client);
+	// // Verifica si el canal #dummy existe, si no, lo inserta
+	// std::map<std::string, Channel>::iterator it = channels.find(dummy_channel_name);
+	// if (it == channels.end()) {
+	// 	// El canal no existe, se inserta usando insert
+	// 	channels.insert(std::make_pair(dummy_channel_name, Channel(dummy_channel_name)));
+	// 	it = channels.find(dummy_channel_name);  // Obtener el iterador después de la inserción
+	// }
+	// // Agrega el cliente al canal #dummy
+	// it->second.addMember(client_fd, new_client);
 
-    // Notificar la conexión al canal
-	std::string join_message = new_client->getNickname() + " has joined " + dummy_channel_name + "\n";
+    // // Notificar la conexión al canal
+	// std::string join_message = new_client->getNickname() + " has joined " + dummy_channel_name + "\n";
 
-    message.sendToChannel(dummy_channel_name, join_message, channels);
+    // message.sendToChannel(dummy_channel_name, join_message, channels);
 
     // Agregar el cliente a la lista de poll fds
     struct pollfd new_client_fd;
@@ -163,15 +163,14 @@ void IRCServer::processClient(int client_fd)
 void IRCServer::removeClient(int client_fd)
 {
 	std::map<int, Client*>::iterator it = clients.find(client_fd);
-	if (it != clients.end()) {
-        Client* cliente = it->second;
-
-        // Notificar la desconexión del cliente a través del evento.
-
-        close(client_fd);
-
-        delete cliente;
-        clients.erase(it);
+    
+    if (it != clients.end()) {
+        // Liberar la memoria del cliente
+        it->second->setNickname("");
+		it->second->setUsername("");
+        
+        // Eliminar la entrada del mapa
+        //clients.erase(it);
     }
 
 
@@ -203,7 +202,6 @@ void IRCServer::receiveData(int fd)
 		} else {
 			std::cerr << "Error receiving data: " << strerror(errno) << std::endl;
 		}
-		close(fd);
 		removeClient(fd);
 		return;
 	}
@@ -254,7 +252,10 @@ void IRCServer::process_command(std::string command, int fd)
 		quit(command, fd);
 	else if (cliente->isRegistred()) // Si está registrado puede ejecutar otros comandos
 	{
-		std::cout << "Puedes ejecutar otros comandos" << std::endl;	
+		if (split_command[0] == PRIVMSG)
+			privmsg(command, *cliente);
+		if (split_command[0] == JOIN)
+			join(command, *cliente);
 	}
 	else if (!cliente->isRegistred())
 		std::cout << cliente->isRegistred() << ERR_NOTREGISTERED(cliente->getNickname()) << std::endl;
@@ -269,7 +270,9 @@ void IRCServer::quit(std::string command, int fd)
 
 	std::cout << "Client disconnected" << std::endl;
 	close(fd);
+	RemoveFds(fd);
 	removeClient(fd);
+	printPollFDsAndClients();
 }
 
 /* REGISTRATION PROCESS */
@@ -310,20 +313,17 @@ void	IRCServer::authenticate(std::string command, Client& client)
 		Utils::removeLeadingChar(enteredPassword, ':');
 
         if (enteredPassword == this->password)
-        {
             client.setAutenticate(true);
-            std::cout << "Contraseña correcta... " << client.isAutenticate() << std::endl;
-        }
         else
         {
-            std::cout << ERR_PASSWDMISMATCH(client.getNickname()) << std::endl;
+            message.sendToClient(client.getFd(), ERR_PASSWDMISMATCH(client.getNickname()));
             client.setAutenticate(false);
         }
     }
     else if (client.isRegistred())
-        std::cout << ERR_ALREADYREGISTERED(client.getNickname()) << std::endl;
+        message.sendToClient(client.getFd(), ERR_ALREADYREGISTERED(client.getNickname()));
 	else
-		std::cout << ERR_NEEDMOREPARAMS(client.getNickname()) << std::endl;
+		message.sendToClient(client.getFd(), ERR_NEEDMOREPARAMS(client.getNickname()));
 }
 
 void	IRCServer::registerNickname(std::string command, Client& client)
@@ -347,9 +347,9 @@ void	IRCServer::registerNickname(std::string command, Client& client)
 			Utils::removeLeadingChar(nickname, ':');
 
 			if (!isValidNickname(nickname))
-				std::cout << ERR_ERRONEUSNICK(nickname) << std::endl;
+				message.sendToClient(client.getFd(), ERR_ERRONEUSNICK(nickname));
 			else if (isNicknameTaken(nickname))
-				std::cout << ERR_NICKCOLLISION(nickname) << std::endl;
+				message.sendToClient(client.getFd(), ERR_NICKCOLLISION(nickname));
 			else
 			{	
 				// YA TIENE NICK --> CAMBIAR NICK
@@ -358,26 +358,29 @@ void	IRCServer::registerNickname(std::string command, Client& client)
 				
 				client.setNickname(nickname);
 				
+				// TODO
 				// ACTUALIZAR CANALES
 
 				// CAMBIO NICK -- MENSAJE EXITO
 				if (!client.getUsername().empty())
 				{
 					client.setRegistred(true);
-					std::cout << RPL_CONNECTED(client.getNickname()) << std::endl;
+					message.sendToClient(client.getFd(), RPL_CONNECTED(client.getNickname()));
 					if (!oldNickname.empty())
-						std::cout << oldNickname << ": Nickname changed!" << std::endl;	 //OPTIONAL
+					{
+						std::string change_nick_msg = oldNickname + ": Nickname changed!";
+						message.sendToClient(client.getFd(), change_nick_msg);
+					}
 				}
 			}
 		}
 		else if (command_len < 2) 	// Not enough params
-			std::cout << ERR_NONICKNAME(std::string("*")) << std::endl;
+			message.sendToClient(client.getFd(), ERR_NONICKNAME(std::string("*")));
 		else if (command_len > 2)	// Spaces not allowed
-			std::cout << ERR_ERRONEUSNICK(std::string("*")) << std::endl;
+			message.sendToClient(client.getFd(), ERR_ERRONEUSNICK(std::string("*")));
 	}
 	else
 		std::cout << ERR_NOTREGISTERED(std::string("*")) << std::endl;
-	
 }
 
 void	IRCServer::registerUsername(std::string command, Client& client)
@@ -391,21 +394,22 @@ void	IRCServer::registerUsername(std::string command, Client& client)
 		split_command = Utils::splitBySpaces(command);
 		command_len = split_command.size();
 		if (command_len < 5)
-			std::cout << ERR_NEEDMOREPARAMS(client.getNickname());
+			message.sendToClient(client.getFd(), ERR_NEEDMOREPARAMS(client.getNickname()));
 		else if (!client.getUsername().empty())
-			std::cout << ERR_ALREADYREGISTERED(client.getNickname()) << std::endl;
+			message.sendToClient(client.getFd(), ERR_ALREADYREGISTERED(client.getNickname()));
 		else
 		{
 			client.setUsername(split_command[1]);
 			if (!client.getNickname().empty())
 			{
 				client.setRegistred(true);
-				std::cout << RPL_CONNECTED(client.getNickname()) << std::endl;	
+				std::cout << "fd: " << client.getFd() << std::endl;
+				message.sendToClient(client.getFd(), RPL_CONNECTED(client.getNickname()));	
 			}
 		}
 	}
 	else
-		std::cout << ERR_NOTREGISTERED(std::string("*")) << std::endl;
+		message.sendToClient(client.getFd(), ERR_NOTREGISTERED(std::string("*")));
 }
 
 bool	IRCServer::isValidNickname(const std::string nickname)
@@ -443,4 +447,22 @@ void	IRCServer::handle_signals(int signum)
 {
 	signal = true;
 	(void) signum;
+}
+
+
+void IRCServer::printPollFDsAndClients() {
+    std::cout << "\n--- PollFDs ---\n";
+    for (std::vector<struct pollfd>::const_iterator it = fds.begin(); it != fds.end(); ++it) {
+        std::cout << "FD: " << it->fd << ", Events: " << it->events << ", Revents: " << it->revents << '\n';
+    }
+
+    std::cout << "\n--- Clients ---\n";
+    for (std::map<int, Client*>::const_iterator it = clients.begin(); it != clients.end(); ++it) {
+        Client* client = it->second;
+        std::cout << "Socket FD: " << it->first << '\n';
+        std::cout << "  Nickname: " << client->getNickname() << '\n';
+        std::cout << "  Username: " << client->getUsername() << '\n';
+        std::cout << "  Hostname: " << client->getHostname() << '\n';
+        std::cout << "  Buffer: " << client->getBuffer() << '\n';
+    }
 }

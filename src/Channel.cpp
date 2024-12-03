@@ -1,64 +1,12 @@
 #include "Channel.hpp"
 
-// Constructor
-Channel::Channel(const std::string& name)
-    : name(name), inviteOnlyFlag(false), topicRestrictedToOps(false), userLimit(0) {}
+/* PARAMETRIZED CONSTRUCTOR */
+Channel::Channel(const std::string& name, const std::string& key): name(name), channelKey(key), inviteOnlyFlag(false), topicRestrictedToOps(false), userLimit(0) {}
 
-// Getters and Setters
-const std::string& Channel::getName() const {
-    return name;
-}
+Channel::Channel(const std::string& name): name(name), inviteOnlyFlag(false), topicRestrictedToOps(false), userLimit(0) {}
 
-void Channel::setChannelKey(const std::string& key) {
-    channelKey = key;
-}
-
-const std::string& Channel::getChannelKey() const {
-    return channelKey;
-}
-
-void Channel::removeChannelKey() {
-    channelKey.clear();
-}
-
-void Channel::setTopic(const std::string& topic) {
-    this->topic = topic;
-}
-
-const std::string& Channel::getTopic() const {
-    return topic;
-}
-
-void Channel::setInviteOnly(bool value) {
-    inviteOnlyFlag = value;
-}
-
-bool Channel::isInviteOnly() const {
-    return inviteOnlyFlag;
-}
-
-void Channel::setTopicRestrictedToOps(bool value) {
-    topicRestrictedToOps = value;
-}
-
-bool Channel::isTopicRestrictedToOps() const {
-    return topicRestrictedToOps;
-}
-
-void Channel::setUserLimit(size_t limit) {           // Changed to size_t
-    userLimit = limit;
-}
-
-size_t Channel::getUserLimit() const {               // Changed to size_t
-    return userLimit;
-}
-
-bool Channel::isUserLimitReached() const {
-    return members.size() >= userLimit;               // No longer a sign comparison warning
-}
-
-// Methods for managing members
-void Channel::addMember(int client_fd, Client* client) {
+/* METHODS */
+void Channel::addMember(int client_fd, Client *client) {
     members[client_fd] = client;
 }
 
@@ -70,11 +18,6 @@ bool Channel::isMember(int client_fd) const {
     return members.find(client_fd) != members.end();
 }
 
-const std::map<int, Client*>& Channel::getMembers() const {
-    return members;
-}
-
-// Methods for managing operators
 void Channel::addOperator(int client_fd, Client* client) {
     operators[client_fd] = client;
 }
@@ -86,3 +29,71 @@ void Channel::removeOperator(int client_fd) {
 bool Channel::isOperator(int client_fd) const {
     return operators.find(client_fd) != operators.end();
 }
+
+void Channel::removeChannelKey() {
+    channelKey.clear();
+}
+
+bool Channel::isUserLimitReached() const {
+    return members.size() >= userLimit;
+}
+
+void Channel::addHistoryMsg(std::string& msg)
+{
+    history.push_back(msg);
+}
+
+/* GETTERS */
+const std::string& Channel::getName() const {
+    return name;
+}
+
+const std::string& Channel::getChannelKey() const {
+    return channelKey;
+}
+
+const std::string& Channel::getTopic() const {
+    return topic;
+}
+
+bool Channel::isTopicRestrictedToOps() const {
+    return topicRestrictedToOps;
+}
+
+bool Channel::isInviteOnly() const {
+    return inviteOnlyFlag;
+}
+
+size_t Channel::getUserLimit() const {
+    return userLimit;
+}
+
+const std::map<int, Client*>& Channel::getMembers() const {
+    return members;
+}
+
+const std::vector<std::string>& Channel::getHistory() const {
+    return history;
+}
+
+/* SETTERS */
+void Channel::setChannelKey(const std::string& key) {
+    channelKey = key;
+}
+
+void Channel::setTopic(const std::string& topic) {
+    this->topic = topic;
+}
+
+void Channel::setInviteOnly(bool value) {
+    inviteOnlyFlag = value;
+}
+
+void Channel::setTopicRestrictedToOps(bool value) {
+    topicRestrictedToOps = value;
+}
+
+void Channel::setUserLimit(size_t limit) {
+    userLimit = limit;
+}
+
