@@ -24,15 +24,15 @@ class Channel {
         Channel(const std::string& name);
 
         /* METHODS */
-		void addMember(int client_fd, Client* client);
-		void removeMember(int client_fd);
-		bool isMember(int client_fd) const;
-        void addOperator(int client_fd, Client* client);
-        void removeOperator(int client_fd);
-        bool isOperator(int client_fd) const;
-        void removeChannelKey();
-        bool isUserLimitReached() const;
-        void addHistoryMsg(std::string& msg);
+		void    addMember(int client_fd, Client* client);
+		void    removeMember(int client_fd);
+		bool    isMember(int client_fd) const;
+        void    addOperator(int client_fd, Client* client);
+        void    removeOperator(int client_fd);
+        bool    isOperator(int client_fd) const;
+        void    removeChannelKey();
+        bool    isUserLimitReached() const;
+        void    addHistoryMsg(const std::string& msg);
 
 		/* GETTERS */
 		const std::string&  getName() const;

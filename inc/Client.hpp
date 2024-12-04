@@ -8,6 +8,7 @@
 #include <cerrno>
 #include <cstring>
 #include <vector>
+#include <algorithm> 
 #include "Utils.hpp"
 #include <ctime>
 
@@ -21,6 +22,7 @@ class Client {
 		bool		autenticate;
 		bool		registred;
 		std::time_t connectionTime;
+		std::vector<std::string>	channels;	// CHANNELS PARTICIPATING
 
 	public:
 		/* PARAMETRIZED CONSTRUCTOR */
@@ -30,8 +32,9 @@ class Client {
 		~Client();
 
 		/* METHODS */
-		void clearBuffer(void);
-		void sendMessage(const std::string& message) const;
+		void 	clearBuffer(void);
+		void 	sendMessage(const std::string& message) const;
+		void 	addChannel(const std::string& channel);
 		
 		/* GETTERS */
 		int getFd() const;

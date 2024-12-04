@@ -33,10 +33,12 @@ std::vector<std::string>    Utils::splitBySpaces(const std::string& str)
     return (items);
 }
 
-void    Utils::removeLeadingChar(std::string& str, char c)
+std::string    Utils::removeLeadingChar(const std::string& str, char c)
 {   
-    if (!str.empty() && str[0] == c)
-        str.erase(str.begin());
+    if (!str.empty() && str[0] == c) {
+        return str.substr(1);
+    }
+    return str;
 }
 
 std::string joinIntVector(const std::vector<int>& vec)

@@ -38,7 +38,7 @@ bool Channel::isUserLimitReached() const {
     return members.size() >= userLimit;
 }
 
-void Channel::addHistoryMsg(std::string& msg)
+void Channel::addHistoryMsg(const std::string& msg)
 {
     history.push_back(msg);
 }

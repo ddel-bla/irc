@@ -108,23 +108,6 @@ void IRCServer::acceptClient()
     Client* new_client = new Client(client_fd);
     clients[client_fd] = new_client;
 
-	// const std::string dummy_channel_name = "#dummy";
-
-	// // Verifica si el canal #dummy existe, si no, lo inserta
-	// std::map<std::string, Channel>::iterator it = channels.find(dummy_channel_name);
-	// if (it == channels.end()) {
-	// 	// El canal no existe, se inserta usando insert
-	// 	channels.insert(std::make_pair(dummy_channel_name, Channel(dummy_channel_name)));
-	// 	it = channels.find(dummy_channel_name);  // Obtener el iterador después de la inserción
-	// }
-	// // Agrega el cliente al canal #dummy
-	// it->second.addMember(client_fd, new_client);
-
-    // // Notificar la conexión al canal
-	// std::string join_message = new_client->getNickname() + " has joined " + dummy_channel_name + "\n";
-
-    // message.sendToChannel(dummy_channel_name, join_message, channels);
-
     // Agregar el cliente a la lista de poll fds
     struct pollfd new_client_fd;
     new_client_fd.fd = client_fd;
@@ -253,7 +236,7 @@ void IRCServer::process_command(std::string command, int fd)
 	else if (cliente->isRegistred()) // Si está registrado puede ejecutar otros comandos
 	{
 		if (split_command[0] == PRIVMSG)
-			privmsg(command, *cliente);
+			privMsg(command, *cliente);
 		if (split_command[0] == JOIN)
 			join(command, *cliente);
 	}
@@ -272,7 +255,6 @@ void IRCServer::quit(std::string command, int fd)
 	close(fd);
 	RemoveFds(fd);
 	removeClient(fd);
-	printPollFDsAndClients();
 }
 
 /* REGISTRATION PROCESS */
@@ -300,51 +282,42 @@ void	IRCServer::checkRegistrationTimeout(void)
 
 void	IRCServer::authenticate(std::string command, Client& client)
 {
-	std::vector<std::string>    split_command;
-    std::string                 enteredPassword;
+	// 1. Split command
+	std::vector<std::string> split_command= Utils::splitBySpaces(command);;
+    std::string enteredPassword;
 
-    split_command = Utils::splitBySpaces(command);
     if (split_command.size() == 2 && !client.isRegistred())
     {
-        // SKIP 'PASS'
-		enteredPassword = split_command[1];
-
-		// REMOVE ':' -- PASS :password
-		Utils::removeLeadingChar(enteredPassword, ':');
-
+        // 2. Skip 'PASS' & REMOVE ':' -- PASS :password
+		enteredPassword = Utils::removeLeadingChar(split_command[1], ':');
+		
+		// 3. Valid passwd
         if (enteredPassword == this->password)
             client.setAutenticate(true);
-        else
+        // 3. Wrong passwd
+		else
         {
             message.sendToClient(client.getFd(), ERR_PASSWDMISMATCH(client.getNickname()));
             client.setAutenticate(false);
         }
     }
-    else if (client.isRegistred())
+    else if (client.isRegistred())	// ALREADY REGISTERED
         message.sendToClient(client.getFd(), ERR_ALREADYREGISTERED(client.getNickname()));
-	else
+	else							// NEED MORE PARAMS
 		message.sendToClient(client.getFd(), ERR_NEEDMOREPARAMS(client.getNickname()));
 }
 
 void	IRCServer::registerNickname(std::string command, Client& client)
 {
-	std::vector<std::string>	split_command;
-	size_t	command_len;
-	std::string	nickname;
-	std::string	oldNickname;
-
-	// DEBE ESTAR AUTENTICADO (PASS)
+	//1. Authenticated (PASS)
 	if (client.isAutenticate())
 	{
-		split_command = Utils::splitBySpaces(command);
-		command_len = split_command.size(); 
+		std::vector<std::string> split_command = Utils::splitBySpaces(command);
+		size_t command_len = split_command.size(); 
 		if (command_len == 2)
 		{
-			// SKIP 'NICK'
-			nickname = split_command[1];
-			
-			// REMOVE ':' NICK :wii
-			Utils::removeLeadingChar(nickname, ':');
+			//2. Skip 'NICK' & remove ':' NICK :wii
+			std::string	nickname = Utils::removeLeadingChar(split_command[1], ':');
 
 			if (!isValidNickname(nickname))
 				message.sendToClient(client.getFd(), ERR_ERRONEUSNICK(nickname));
@@ -352,24 +325,26 @@ void	IRCServer::registerNickname(std::string command, Client& client)
 				message.sendToClient(client.getFd(), ERR_NICKCOLLISION(nickname));
 			else
 			{	
-				// YA TIENE NICK --> CAMBIAR NICK
+				std::string	oldNickname;
+				
+				// 3. Has already a nick --> changing nickname
 				if (!client.getNickname().empty() && nickname != client.getNickname())
 					oldNickname = client.getNickname();
 				
 				client.setNickname(nickname);
 				
-				// TODO
-				// ACTUALIZAR CANALES
+				// 4. Channel clients update
+				updateChannelsClientNickname(client.getFd(), nickname);
 
-				// CAMBIO NICK -- MENSAJE EXITO
+				// 5. Set registered and success msg
 				if (!client.getUsername().empty())
 				{
+					if (!client.isRegistred()) // If already registered dont send
+						message.sendToClient(client.getFd(), RPL_CONNECTED(client.getNickname()));
 					client.setRegistred(true);
-					message.sendToClient(client.getFd(), RPL_CONNECTED(client.getNickname()));
 					if (!oldNickname.empty())
 					{
-						std::string change_nick_msg = oldNickname + ": Nickname changed!";
-						message.sendToClient(client.getFd(), change_nick_msg);
+						message.sendToClient(client.getFd(), RPL_CHANGEDNICK(oldNickname));
 					}
 				}
 			}
@@ -385,30 +360,30 @@ void	IRCServer::registerNickname(std::string command, Client& client)
 
 void	IRCServer::registerUsername(std::string command, Client& client)
 {
-	std::vector<std::string>	split_command;
-	size_t	command_len;
-
-	// DEBE ESTAR AUTENTICADO (PASS)
+	// 1. Autenticated
 	if(client.isAutenticate())
 	{
-		split_command = Utils::splitBySpaces(command);
-		command_len = split_command.size();
-		if (command_len < 5)
+		// 2. Split command
+		std::vector<std::string> split_command = Utils::splitBySpaces(command);
+		size_t command_len = split_command.size();
+		if (command_len < 5)					// NEED MORE PARAMS
 			message.sendToClient(client.getFd(), ERR_NEEDMOREPARAMS(client.getNickname()));
-		else if (!client.getUsername().empty())
+		else if (!client.getUsername().empty())	// ALREADY REGISTERED
 			message.sendToClient(client.getFd(), ERR_ALREADYREGISTERED(client.getNickname()));
 		else
 		{
+			// 3. Set username
 			client.setUsername(split_command[1]);
+			
+			// 4. Set registered to true if NICK and USER completed
 			if (!client.getNickname().empty())
 			{
 				client.setRegistred(true);
-				std::cout << "fd: " << client.getFd() << std::endl;
 				message.sendToClient(client.getFd(), RPL_CONNECTED(client.getNickname()));	
 			}
 		}
 	}
-	else
+	else		// NO AUTENTICATED
 		message.sendToClient(client.getFd(), ERR_NOTREGISTERED(std::string("*")));
 }
 
@@ -442,27 +417,21 @@ bool	IRCServer::isNicknameTaken(const std::string nickname)
 	return (false);
 }
 
+void IRCServer::updateChannelsClientNickname(int fd, const std::string& newNickname) {
+    for (std::map<std::string, Channel>::iterator it = channels.begin(); it != channels.end(); ++it) {
+        Channel& channel = it->second;
+
+        std::map<int, Client*>::const_iterator memberIt = channel.getMembers().find(fd);
+        if (memberIt != channel.getMembers().end()) {
+            memberIt->second->setNickname(newNickname);
+        }
+    }
+}
+
+
 /* SIGNALS */
 void	IRCServer::handle_signals(int signum)
 {
 	signal = true;
 	(void) signum;
-}
-
-
-void IRCServer::printPollFDsAndClients() {
-    std::cout << "\n--- PollFDs ---\n";
-    for (std::vector<struct pollfd>::const_iterator it = fds.begin(); it != fds.end(); ++it) {
-        std::cout << "FD: " << it->fd << ", Events: " << it->events << ", Revents: " << it->revents << '\n';
-    }
-
-    std::cout << "\n--- Clients ---\n";
-    for (std::map<int, Client*>::const_iterator it = clients.begin(); it != clients.end(); ++it) {
-        Client* client = it->second;
-        std::cout << "Socket FD: " << it->first << '\n';
-        std::cout << "  Nickname: " << client->getNickname() << '\n';
-        std::cout << "  Username: " << client->getUsername() << '\n';
-        std::cout << "  Hostname: " << client->getHostname() << '\n';
-        std::cout << "  Buffer: " << client->getBuffer() << '\n';
-    }
 }

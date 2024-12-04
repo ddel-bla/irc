@@ -14,7 +14,7 @@ class Message {
 
 
 		void sendToChannel(const std::string& channel_name, const std::string& message,
-						const std::map<std::string, Channel>& channels, int exclude_fd = -1);
+						std::map<std::string, Channel>& channels, int exclude_fd = -1);
 
 		void sendToAll(const std::string& message,
 					const std::map<std::string, Channel>& channels, int exclude_fd = -1);

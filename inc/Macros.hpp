@@ -30,6 +30,7 @@
 #define RPL_NAMREPLY(nick, channel, clientslist) 	(": 353 " + nick + " @ #" + channel + " :" + clientslist + CRLF)
 #define RPL_ENDOFNAMES(nick, channel) 				(": 366 " + nick + " #" + channel + " :END of /NAMES list" + CRLF)
 #define RPL_TOPICIS(nick, channel, topic) 			(": 332 " + nick + " #" +channel + " :" + topic + CRLF)
+#define RPL_CHANGEDNICK(nick)						(": 999 " + nick + " : Nickname changed!" + CRLF)
 
 /* SYSTEM ERRORS */
 #define ERR_NEEDMODEPARM(channel, mode) 			(": 696 #" + channel + " * You must specify a parameter for the key mode. " + mode + CRLF)
@@ -40,7 +41,7 @@
 #define ERR_PASSWDMISMATCH(nick)                    (": 464 " + nick + " :Password incorrect !" + CRLF )
 #define ERR_CHANNELNOTFOUND(nick, channel) 			(": 403 " + nick + " " + channel + " :No such channel" + CRLF)
 #define ERR_NOTOPERATOR(channel) 					(": 482 #" + channel + " :You're not a channel operator" + CRLF)
-#define ERR_NOSUCHNICK(name) 				(": 401 #" + name + " :No such nick/channel" + CRLF )
+#define ERR_NOSUCHNICK(name) 				        (": 401 #" + name + " :No such nick/channel" + CRLF )
 #define ERR_INCORPASS(nick) 						(": 464 " + nick + " :Password incorrect !" + CRLF )
 #define ERR_ALREADYREGISTERED(nick) 				(": 462 " + nick + " :You may not reregister !" + CRLF )
 #define ERR_NONICKNAME(nick)                        (": 431 " + nick + " :No nickname given" + CRLF )
@@ -49,9 +50,9 @@
 #define ERR_NOTREGISTERED(nick) 					(": 451 " + nick + " :You have not registered!" + CRLF)
 #define ERR_UNKNOWNCOMMAND(nick, command)           (": 421 " + nick + " " + command + " :Unknown command" + CRLF)
 #define ERR_NICKCOLLISION(nick)                     (": 426 " + nick + " Nickname collision KILL from  user + @ + host" + CRLF) // TODO
-#define ERR_NORECIPIENT(nick, command)              (": 411 " + nick + " :No recipient given " + command)
-#define ERR_NOTEXTTOSEND(nick)                      (": 412 " + nick + " :No text to send")
-#define ERR_BADCHANNELKEY(nick, channel)            (": 475 " + nick + " " + channel + " Cannot join channel (+k)") // TODO
+#define ERR_NORECIPIENT(nick, command)              (": 411 " + nick + " :No recipient given " + command + CRLF)
+#define ERR_NOTEXTTOSEND(nick)                      (": 412 " + nick + " :No text to send" + CRLF)
+#define ERR_BADCHANNELKEY(nick, channel)            (": 475 " + nick + " " + channel + " Cannot join channel (+k)"+ CRLF) // TODO
 
 /* COLORS */
 #define RED		"\033[0;91m"

@@ -39,7 +39,6 @@ private:
 		void process_command(std::string command, int fd);
 		void quit(std::string command, int fd);
 		void RemoveFds(int fd);
-		void printPollFDsAndClients();
 
 		/* REGISTRATION METHODS */
 		void 	checkRegistrationTimeout(void);
@@ -48,15 +47,20 @@ private:
 		void	registerUsername(std::string command, Client& client);
 		bool	isValidNickname(const std::string nickname);
 		bool	isNicknameTaken(const std::string nickname);
+		void	updateChannelsClientNickname(int fd, const std::string& newNickname);
+
+		/* HEXCLIENT MSG FORMAT */
+		std::string	hx_privmsg_format(const std::string& command, Client& sender);
+		std::string	hx_join_format(const std::string& command, Client& sender);
 
 		/* PRIVMSG */
-		void		privmsg(const std::string& command, Client& clien);
-		std::string	format_privmsg(const std::string& command, Client& sender);
-		void		process_destinataries(std::vector<std::string> destinataries, Client client, std::string& msg);
-		int			findFdByNickname(const std::string& nickname);
+		void	privMsg(const std::string& command, Client& clien);
+		int		findFdByNickname(const std::string& nickname);
+		bool	existsChannelByName(const std::string& name);
 
 		/* JOIN */
 		void	join(const std::string& command, Client& client);
+		void	showChannelHistory(const std::vector<std::string> history, int fd);
 
 public:
 		/* PARAMETRIZED CONSTRUCTOR*/

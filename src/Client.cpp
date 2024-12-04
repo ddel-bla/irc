@@ -21,6 +21,13 @@ void Client::sendMessage(const std::string& message) const {
 	}
 }
 
+void Client::addChannel(const std::string& channel)
+{
+	if (std::find(this->channels.begin(), this->channels.end(), channel) == this->channels.end()) {
+        this->channels.push_back(channel);
+    }
+}
+
 /* GETTERS */
 int Client::getFd() const {
 	return fd;
