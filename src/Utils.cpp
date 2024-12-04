@@ -105,3 +105,10 @@ std::string Utils::toUpper(const std::string& input)
     }
     return result;
 }
+
+std::string Utils::intToString(int number)
+{
+    std::ostringstream oss;
+    oss << number;
+    return oss.str();
+}

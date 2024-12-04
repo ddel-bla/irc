@@ -50,9 +50,13 @@ class Client {
 		void setFd(int fd);
 		void setNickname(const std::string& nickname);
 		void setUsername(const std::string& username);
+		void setHostname(const std::string& hostname);
 		void setBuffer(const std::string& buffer);
 		void setAutenticate(const bool autenticate);
 		void setRegistred(const bool registred);
+
+		/* TO STRING */
+		std::string	fdToString();
 };
 
 #endif	// CLIENT.HPP

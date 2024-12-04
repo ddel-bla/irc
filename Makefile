@@ -15,7 +15,8 @@ SRC		=	Channel \
 			IRCServer \
 			Utils \
 			Main \
-			Message
+			Message \
+			Logger
 
 SRCS	= $(addprefix $(SRC_DIR), $(addsuffix .cpp, $(SRC)))
 OBJS	= $(addprefix $(OBJ_DIR), $(addsuffix .o, $(SRC)))

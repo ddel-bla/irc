@@ -15,6 +15,7 @@
 #include "Message.hpp"
 #include "Macros.hpp"
 #include "Commands.hpp"
+#include "Logger.hpp"
 
 class IRCServer
 {
@@ -26,6 +27,7 @@ private:
 		std::vector<struct pollfd>		fds;
 		std::map<int, Client*>			clients; // FD to Client object mapping
 		std::map<std::string, Channel>	channels; // Map to manage channels
+		Logger 							logger;		// Logger
 		Message 						message; // New attribute to handle events
 
 		/* GLOBAL VARIABLES */

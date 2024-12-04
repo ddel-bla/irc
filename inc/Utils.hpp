@@ -19,6 +19,7 @@ public:
     static std::string  getMessageWithoutPrefix(const std::string& message);
     static std::string  getCurrentTimeISO8601();
     static std::string  toUpper(const std::string& input);
+     static std::string  intToString(int number);
 };
 
 #endif // UTILS_HPP

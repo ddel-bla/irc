@@ -43,10 +43,11 @@ std::string	IRCServer::hx_join_format(const std::string& command, Client& sender
 	return (message);
 }
 
-
 /* PRIVMSG */
 void IRCServer::privMsg(const std::string& command, Client& client)
 {
+	logger.info("[PRIVMSG] :: " + client.getNickname());
+
 	// 1. Splitting command
 	std::vector<std::string> split_command = Utils::splitBySpaces(command);
 	int	command_len = split_command.size();
@@ -58,7 +59,8 @@ void IRCServer::privMsg(const std::string& command, Client& client)
 
 		// 3. Format msg (hexchat)
 		std::string	msg_text = hx_privmsg_format(command, client);
-		
+		logger.info("[PRIVMSG] :: Sending message: " + msg_text);
+
 		// 4. Send msg to each destinatary
 		for (std::vector<std::string>::iterator it = destinataries.begin(); it != destinataries.end(); ++it)
 		{
@@ -71,6 +73,7 @@ void IRCServer::privMsg(const std::string& command, Client& client)
 				std::string realName = Utils::removeLeadingChar(dest_nick, '#');
 				if (!existsChannelByName(realName))		// does not exist
 				{
+					logger.warning("[PRIVMSG] Channel '" + realName + " not found.");
 					message.sendToClient(client.getFd(), ERR_CHANNELNOTFOUND(client.getNickname(), dest_nick));
 					continue;
 				}
@@ -83,6 +86,7 @@ void IRCServer::privMsg(const std::string& command, Client& client)
 				dest_fd = findFdByNickname(dest_nick);
 				if (dest_fd == -1)		// does not exist
 				{	
+					logger.warning("[PRIVMSG] User '" + dest_nick + " not found.");
 					message.sendToClient(client.getFd(), ERR_NOSUCHNICK(client.getNickname()));
 					continue;
 				}
@@ -92,9 +96,15 @@ void IRCServer::privMsg(const std::string& command, Client& client)
     	}
 	}
 	else if (command_len == 2) 	// NO MSG
+	{
+		logger.warning("[PRIVMSG] " + client.getNickname() + " --> No message in command.");
 		message.sendToClient(client.getFd(), ERR_NOTEXTTOSEND(client.getNickname()));
+	}
 	else						// NO DESTINATARY
+	{
+		logger.warning("[PRIVMSG] " + client.getNickname() + " --> No destinatary.");
 		message.sendToClient(client.getFd(), ERR_NORECIPIENT(client.getNickname(), command));
+	}
 }
 
 int IRCServer::findFdByNickname(const std::string& nickname) {
@@ -120,6 +130,8 @@ bool IRCServer::existsChannelByName(const std::string& name)
 /* JOIN CHANNEL */
 void	IRCServer::join(const std::string& command, Client& client)
 {
+	logger.info("[JOIN] :: User " + client.getNickname() + " joining a channel.");
+
 	// 1. Splitting cmd
 	std::vector<std::string> split_command = Utils::splitBySpaces(command);
 	int	command_len = split_command.size();
@@ -134,6 +146,7 @@ void	IRCServer::join(const std::string& command, Client& client)
 		
 		// 3. Format msg (hexchat)
 		std::string msg_text = hx_privmsg_format(command, client);
+		logger.info("[JOIN] :: HC Message: " + msg_text);
 		
 		// 4. Join each channel (if possible) 
 		for (size_t i = 0; i < cmd_channels.size(); ++i)
@@ -147,6 +160,7 @@ void	IRCServer::join(const std::string& command, Client& client)
 			// 7. Channel does not exist
 			if (it == channels.end())
 			{ 
+				logger.info("[JOIN] :: Creating channel : " + channel_name + " " + channel_key);
 				if (!channel_key.empty())	// PASSWD
 					channels.insert(std::make_pair(channel_name, Channel(channel_name, channel_key)));
 				else						// NO PASSWD
@@ -162,6 +176,7 @@ void	IRCServer::join(const std::string& command, Client& client)
 			{
 				// 8. Wrong key entered
 				if (!it->second.getChannelKey().empty() && (channel_key.empty() || it->second.getChannelKey() != channel_key)) {
+					logger.info("[JOIN] :: Wrong channel key : " + channel_name + ". Entered key: " + channel_key + ", Actual key: " + it->second.getChannelKey());
 					message.sendToClient(client.getFd(), ERR_BADCHANNELKEY(client.getNickname(), it->second.getName()));
 					continue; // Skip to the next channel
 				}
@@ -174,6 +189,7 @@ void	IRCServer::join(const std::string& command, Client& client)
 			{
 				message.sendToClient(client.getFd(), msg_text);
 				msg_text = hx_join_format(command, client);
+				logger.info("[JOIN] :: HC member join message: " + msg_text);
 				message.sendToChannel(channel_name, msg_text, channels, -1);
 			}
 			

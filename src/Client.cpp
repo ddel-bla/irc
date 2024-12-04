@@ -74,6 +74,10 @@ void Client::setUsername(const std::string& username) {
     this->username = username;
 }
 
+void Client::setHostname(const std::string& hostname) {
+	this->hostname = hostname;
+}
+
 void Client::setBuffer(const std::string& buffer) {
     this->buffer = buffer;
 }
@@ -91,3 +95,8 @@ void Client::clearBuffer(void)
     buffer.clear();
 }
 
+/* TO STRING */
+std::string Client::fdToString()
+{
+	return "Client fd:" + Utils::intToString(fd);
+}
