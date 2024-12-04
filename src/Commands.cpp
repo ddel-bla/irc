@@ -21,7 +21,7 @@ std::string	IRCServer::hx_privmsg_format(const std::string& command, Client& sen
 	return (message);
 }
 
-std::string	IRCServer::hx_join_format(const std::string& command, Client& sender)
+std::string	IRCServer::hx_join_format(const std::string& channel_name, Client& sender, bool member_joined)
 {
 	//"@time=2024-12-04T17:10:52.472Z :webo!~A@89.131.139.38 JOIN #dos * :realname\r\n";
 	std::string message;
@@ -36,9 +36,12 @@ std::string	IRCServer::hx_join_format(const std::string& command, Client& sender
 	message += "~" + sender.getUsername() + "@" + sender.getHostname() + " ";
 
 	// COMMAND
-	message += command;
+	message += "JOIN #" +channel_name;
 	
-	message += " :realname\r\n";
+	if (member_joined)
+		message += " * :realname\r\n";
+	else
+		message += CRLF;
 
 	return (message);
 }
@@ -144,16 +147,16 @@ void	IRCServer::join(const std::string& command, Client& client)
 		if (command_len == 3)
 			cmd_keys = Utils::split(split_command[2], ",");
 		
-		// 3. Format msg (hexchat)
-		std::string msg_text = hx_privmsg_format(command, client);
-		logger.info("[JOIN] :: HC Message: " + msg_text);
-		
 		// 4. Join each channel (if possible) 
 		for (size_t i = 0; i < cmd_channels.size(); ++i)
 		{	
 			// 5. Get channel name and key
 			std::string channel_name = Utils::removeLeadingChar(cmd_channels[i], '#');
     		std::string channel_key = (i < cmd_keys.size()) ? cmd_keys[i] : "";
+
+			// 3. Format msg (hexchat)
+			std::string msg_text = hx_join_format(channel_name, client, false);
+			logger.info("[JOIN] :: HC Message: " + msg_text);
 
     		// 6. Search in existing channels
     		std::map<std::string, Channel>::iterator it = channels.find(channel_name);
@@ -188,7 +191,7 @@ void	IRCServer::join(const std::string& command, Client& client)
 			if (!it->second.isMember(client.getFd()))
 			{
 				message.sendToClient(client.getFd(), msg_text);
-				msg_text = hx_join_format(command, client);
+				msg_text = hx_join_format(channel_name, client, true);
 				logger.info("[JOIN] :: HC member join message: " + msg_text);
 				message.sendToChannel(channel_name, msg_text, channels, -1);
 			}

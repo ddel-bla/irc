@@ -53,7 +53,7 @@ private:
 
 		/* HEXCLIENT MSG FORMAT */
 		std::string	hx_privmsg_format(const std::string& command, Client& sender);
-		std::string	hx_join_format(const std::string& command, Client& sender);
+		std::string	hx_join_format(const std::string& command, Client& sender, bool member_joined);
 
 		/* PRIVMSG */
 		void	privMsg(const std::string& command, Client& clien);
