@@ -62,6 +62,8 @@
 #define MAGENTA	"\033[0;95m"
 #define CYAN	"\033[0;96m"
 #define WHITE	"\033[0;97m"
+#define BOLD    "\033[1m"
 #define RESET	"\033[0m"
+
 
 #endif  // MACROS.HPP

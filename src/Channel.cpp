@@ -97,3 +97,37 @@ void Channel::setUserLimit(size_t limit) {
     userLimit = limit;
 }
 
+/* TO STRING */
+void Channel::toString() const {
+    std::ostringstream output;
+
+    // Header
+    output << BOLD << GREEN << "> Channel: " << name << RESET << "\n";
+    output << CYAN << "Topic: " << RESET << (topic.empty() ? "(No topic set)" : topic) << "\n";
+    output << YELLOW << "Invite Only: " << RESET << (inviteOnlyFlag ? "Yes" : "No") << "\n";
+    output << YELLOW << "Topic Restricted to Ops: " << RESET << (topicRestrictedToOps ? "Yes" : "No") << "\n";
+    output << YELLOW << "User Limit: " << RESET << (userLimit == 0 ? "Unlimited" : Utils::intToString(userLimit)) << "\n";
+    output << RED << "Channel Key: " << RESET << (channelKey.empty() ? "(No key set)" : channelKey) << "\n";
+
+    // Members
+    output << BLUE << "Members (" << members.size() << "):" << RESET << "\n";
+    for (std::map<int, Client*>::const_iterator it = members.begin(); it != members.end(); ++it) {
+        output << "  - " << it->second->getNickname() << " (fd: " << it->first << ")\n";
+    }
+
+    // Operators
+    output << BLUE << "Operators (" << operators.size() << "):" << RESET << "\n";
+    for (std::map<int, Client*>::const_iterator it = operators.begin(); it != operators.end(); ++it) {
+        output << "  - " << it->second->getNickname() << " (fd: " << it->first << ")\n";
+    }
+
+    // History
+    output << CYAN << "Message History (" << history.size() << " messages):" << RESET << "\n";
+    for (std::vector<std::string>::const_iterator it = history.begin(); it != history.end(); ++it) {
+        output << "  * " << *it << "\n";
+    }
+
+    // Print all
+    std::cout << output.str();
+}
+

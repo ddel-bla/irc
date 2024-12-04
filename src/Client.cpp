@@ -28,6 +28,11 @@ void Client::addChannel(const std::string& channel)
     }
 }
 
+void Client::clearBuffer(void)
+{
+    buffer.clear();
+}
+
 /* GETTERS */
 int Client::getFd() const {
 	return fd;
@@ -90,13 +95,47 @@ void Client::setRegistred(const bool registred) {
     this->registred = registred;
 }
 
-void Client::clearBuffer(void)
+void Client::setConnectionTime(const std::time_t connectionTime)
 {
-    buffer.clear();
+	this->connectionTime = connectionTime;
 }
 
 /* TO STRING */
 std::string Client::fdToString()
 {
 	return "Client fd:" + Utils::intToString(fd);
+}
+
+void Client::toString() const {
+    std::ostringstream output;
+
+    // Header
+    output << BOLD << GREEN << "> Client Info (fd: " << fd << ")" << RESET << "\n";
+    output << CYAN << "Nickname: " << RESET << (nickname.empty() ? "(No nickname)" : nickname) << "\n";
+    output << CYAN << "Username: " << RESET << (username.empty() ? "(No username)" : username) << "\n";
+    output << CYAN << "Hostname: " << RESET << (hostname.empty() ? "(No hostname)" : hostname) << "\n";
+
+    // States
+    output << YELLOW << "Authenticated: " << RESET << (autenticate ? "Yes" : "No") << "\n";
+    output << YELLOW << "Registered: " << RESET << (registred ? "Yes" : "No") << "\n";
+
+    // Connectio time
+    char timeBuffer[64];
+    if (std::strftime(timeBuffer, sizeof(timeBuffer), "%Y-%m-%d %H:%M:%S", std::localtime(&connectionTime))) {
+        output << BLUE << "Connection Time: " << RESET << timeBuffer << "\n";
+    } else {
+        output << BLUE << "Connection Time: " << RESET << "(Unknown)\n";
+    }
+
+    // Channels
+    output << RED << "Channels (" << channels.size() << "):" << RESET << "\n";
+    for (std::vector<std::string>::const_iterator it = channels.begin(); it != channels.end(); ++it) {
+        output << "  - " << *it << "\n";
+    }
+
+    // Buffer
+    output << YELLOW << "Buffer: " << RESET << (buffer.empty() ? "(Empty)" : buffer) << "\n";
+
+    // Print all
+    std::cout << output.str();
 }

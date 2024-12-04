@@ -154,7 +154,7 @@ void IRCServer::removeClient(int client_fd)
         // Liberar la memoria del cliente
         it->second->setNickname("");
 		it->second->setUsername("");
-        
+		it->second->setConnectionTime(0);        
         // Eliminar la entrada del mapa
         //clients.erase(it);
     }
@@ -359,7 +359,7 @@ void	IRCServer::registerNickname(std::string command, Client& client)
 				logger.info("[NICK] " + client.fdToString() + " --> Changing nickname in channels...");
 				updateChannelsClientNickname(client.getFd(), nickname);
 
-				// 5. Set registered and success msg
+				// 5. Set registered and succecollisionss msg
 				if (!client.getUsername().empty())
 				{
 					if (!client.isRegistred()) // If already registered dont send
@@ -374,6 +374,7 @@ void	IRCServer::registerNickname(std::string command, Client& client)
 					}
 				}
 			}
+			toString();
 		}
 		else if (command_len < 2) 	// Not enough params
 		{
@@ -483,4 +484,38 @@ void	IRCServer::handle_signals(int signum)
 {
 	signal = true;
 	(void) signum;
+}
+
+/* TO STRING */
+void	IRCServer::toString() const
+{
+	std::ostringstream output;
+
+	// Main information
+	output << BOLD << GREEN << "IRC Server Info" << RESET << "\n";
+	output << CYAN << "Port: " << RESET << port << "\n";
+	output << CYAN << "Password: " << RESET << (password.empty() ? "(No password set)" : password) << "\n";
+	output << CYAN << "Server FD: " << RESET << server_fd << "\n";
+
+	// Conected clients
+	output << BLUE << "Clients (" << clients.size() << "):" << RESET << "\n";
+	for (std::map<int, Client*>::const_iterator it = clients.begin(); it != clients.end(); ++it) {
+		output << "  - FD: " << it->first << " | Nickname: " << it->second->getNickname() << "\n";
+	}
+
+	// Channels
+	output << RED << "Channels (" << channels.size() << "):" << RESET << "\n";
+	for (std::map<std::string, Channel>::const_iterator it = channels.begin(); it != channels.end(); ++it) {
+		output << "  - Channel: " << it->first << "\n";
+		it->second.toString();  // Llamamos al toString del canal para obtener detalles
+	}
+
+	// Fds info
+	output << YELLOW << "Poll FDs (" << fds.size() << "):" << RESET << "\n";
+	for (size_t i = 0; i < fds.size(); ++i) {
+		output << "  - FD: " << fds[i].fd << " | Events: " << fds[i].events << "\n";
+	}
+
+	// Print all
+	std::cout << output.str();
 }

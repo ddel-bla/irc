@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 #include "Client.hpp"
+#include "Macros.hpp"
 
 class Channel {
     private:
@@ -50,6 +51,9 @@ class Channel {
         void    setInviteOnly(bool value);
         void    setTopicRestrictedToOps(bool value);
         void    setUserLimit(size_t limit);
-};
+
+        /* TO STRING */
+        void    toString() const;
+};  
 
 #endif

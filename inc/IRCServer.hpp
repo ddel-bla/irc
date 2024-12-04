@@ -64,6 +64,9 @@ private:
 		void	join(const std::string& command, Client& client);
 		void	showChannelHistory(const std::vector<std::string> history, int fd);
 
+		/* TO STRING */
+		void	toString() const;
+
 public:
 		/* PARAMETRIZED CONSTRUCTOR*/
 		IRCServer(int port, const std::string& password);

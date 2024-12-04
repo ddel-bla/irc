@@ -11,6 +11,7 @@
 #include <algorithm> 
 #include "Utils.hpp"
 #include <ctime>
+#include "Macros.hpp"
 
 class Client {
 	private:
@@ -54,8 +55,10 @@ class Client {
 		void setBuffer(const std::string& buffer);
 		void setAutenticate(const bool autenticate);
 		void setRegistred(const bool registred);
+		void setConnectionTime(const std::time_t connectionTime);
 
 		/* TO STRING */
+		void	toString() const;
 		std::string	fdToString();
 };
 
