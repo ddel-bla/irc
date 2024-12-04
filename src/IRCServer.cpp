@@ -219,6 +219,9 @@ void IRCServer::process_command(std::string command, int fd)
 	if (!split_command.size())
 		return ;
 	
+	// TO upper
+	split_command[0] = Utils::toUpper(split_command[0]);
+	
 	if (split_command[0] == PASS)
 		authenticate(command, *cliente);
 	else if (split_command[0] == USER)

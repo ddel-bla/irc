@@ -96,3 +96,12 @@ std::string Utils::getCurrentTimeISO8601(void)
 
     return oss.str();
 }
+
+std::string Utils::toUpper(const std::string& input)
+{
+    std::string result = input;
+    for (std::string::iterator it = result.begin(); it != result.end(); ++it) {
+        *it = std::toupper(*it);
+    }
+    return result;
+}
