@@ -11,6 +11,7 @@ class Channel {
         std::string name;                         // Channel name
         std::map<int, Client*> members;           // Channel members (key: client_fd)
         std::map<int, Client*> operators;         // Channel operators (key: client_fd)
+        std::map<int, Client*> invited;           // Channel invited (key: client_fd)
         std::string channelKey;                   // Channel key (if needed)
         std::string topic;                        // Channel topic
         bool inviteOnlyFlag;                      // Changed from 'isInviteOnly' to 'inviteOnlyFlag'
@@ -45,6 +46,10 @@ class Channel {
         void addOperator(int client_fd, Client* client);
         void removeOperator(int client_fd);
         bool isOperator(int client_fd) const;
+
+        void addInvited(int client_fd, Client* client);
+        void removeInvited(int client_fd);
+        bool isInvited(int client_fd) const;
 };
 
 #endif

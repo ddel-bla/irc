@@ -86,3 +86,16 @@ void Channel::removeOperator(int client_fd) {
 bool Channel::isOperator(int client_fd) const {
     return operators.find(client_fd) != operators.end();
 }
+
+// Methods for managing operators
+void Channel::addInvited(int client_fd, Client* client) {
+    invited[client_fd] = client;
+}
+
+void Channel::removeInvited(int client_fd) {
+    invited.erase(client_fd);
+}
+
+bool Channel::isInvited(int client_fd) const {
+    return invited.find(client_fd) != operators.end();
+}
