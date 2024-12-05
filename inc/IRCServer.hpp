@@ -43,7 +43,7 @@ private:
 		void receiveData(int fd);
 		void process_command(std::string command, int fd);
 		void quit(std::string command, Client& client);
-		void RemoveFds(int fd);
+		void removeFds(int fd);
 
 		/* REGISTRATION METHODS */
 		void 	checkRegistrationTimeout(void);
@@ -57,7 +57,7 @@ private:
 		void	sendwelcomeMessage(int fd, const std::string& nickname);
 
 		/* HEXCLIENT MSG FORMAT */
-		std::string	hx_privmsg_format(const std::string& command, Client& sender);
+		std::string	hx_generic_format(const std::string& command, Client& sender);
 		std::string	hx_join_format(const std::string& command, Client& sender, bool member_joined);
 
 		/* PRIVMSG */

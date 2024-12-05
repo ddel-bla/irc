@@ -1,52 +1,48 @@
 #include "IRCServer.hpp"
 
-/* HEXCLIENT MSG FORMAT */
-std::string	IRCServer::hx_privmsg_format(const std::string& command, Client& sender)
+/* MAIN METHOD */
+void IRCServer::process_command(std::string command, int fd)
 {
-	//"@time=2024-12-03T01:14:26.669Z :Nick!~USER@host CMD ..."
-	std::string message;
+	std::vector<std::string> split_command;
+	Client	*cliente = clients[fd];
 
-	// TIME
-	message = "@time=" + Utils::getCurrentTimeISO8601();
-
-	// NICK SENDER
-	message += " :" + sender.getNickname() + "!";
-
-	// USER SENDER
-	message += "~" + sender.getUsername() + "@" + sender.getHostname() + " ";
-
-	// To upper command word (privmsg clau :hola)
-	std::string	cmd_formatted = Utils::capitalizeFirstWord(command);
-
-	// COMMAND
-	message += cmd_formatted + CRLF;
-
-	return (message);
-}
-
-std::string	IRCServer::hx_join_format(const std::string& channel_name, Client& sender, bool member_joined)
-{
-	//"@time=2024-12-04T17:10:52.472Z :webo!~A@89.131.139.38 JOIN #dos * :realname\r\n";
-	std::string message;
-
-	// TIME
-	message = "@time=" + Utils::getCurrentTimeISO8601();
-
-	// NICK SENDER
-	message += " :" + sender.getNickname() + "!";
-
-	// USER SENDER
-	message += "~" + sender.getUsername() + "@" + sender.getHostname() + " ";
-
-	// COMMAND
-	message += "JOIN #" + channel_name;
+	if (command.empty())
+		return ;
 	
-	if (member_joined)
-		message += " * :realname\r\n";
-	else
-		message += CRLF;
+	split_command = Utils::splitBySpaces(command);
 
-	return (message);
+	// EMPTY VECTOR
+	if (!split_command.size())
+		return ;
+	
+	// TO upper
+	split_command[0] = Utils::toUpper(split_command[0]);
+	
+	if (split_command[0] == PASS)
+		authenticate(command, *cliente);
+	else if (split_command[0] == USER)
+		registerUsername(command, *cliente);
+	else if (split_command[0] == NICK)
+		registerNickname(command, *cliente);
+	else if (split_command[0] == QUIT)
+		quit(command, *cliente);
+	else if (cliente->isRegistred()) // Si está registrado puede ejecutar otros comandos
+	{
+		if (split_command[0] == PRIVMSG)
+			privMsg(command, *cliente);
+		else if (split_command[0] == JOIN)
+			join(command, *cliente);
+		else if (split_command[0] == KICK)
+			std::cout << "KICK" << std::endl;
+		else if (split_command[0] == INVITE)
+			std::cout << "INVITE" << std::endl;
+		else if (split_command[0] == TOPIC)
+			std::cout << "TOPIC" << std::endl;
+		else if (split_command[0] == MODE)
+			std::cout << "MODE" << std::endl;
+	}
+	else if (!cliente->isRegistred())
+		std::cout << cliente->isRegistred() << ERR_NOTREGISTERED(cliente->getNickname()) << std::endl;
 }
 
 /* PRIVMSG */
@@ -70,7 +66,7 @@ void IRCServer::privMsg(const std::string& command, Client& client)
 		}
 
 		// 3. Format msg (hexchat)
-		std::string	msg_text = hx_privmsg_format(command, client);
+		std::string	msg_text = hx_generic_format(command, client);
 		logger.info("[PRIVMSG] :: Sending message: " + msg_text);
 
 		// 4. Send msg to each destinatary
