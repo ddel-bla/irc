@@ -112,3 +112,18 @@ std::string Utils::intToString(int number)
     oss << number;
     return oss.str();
 }
+
+std::string Utils::capitalizeFirstWord(const std::string& input)
+{
+    std::string result = input;
+    bool isFirstWord = true;
+    
+    for (size_t i = 0; i < result.size(); ++i) {
+        if (isFirstWord && std::isalpha(result[i])) {
+            result[i] = std::toupper(result[i]);
+        } else if (!std::isalpha(result[i]) && result[i] != ':') {
+            return result;
+        }
+    }
+    return result;
+}

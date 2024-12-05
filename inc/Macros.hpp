@@ -1,6 +1,10 @@
 #ifndef MACROS_HPP
 # define MACROS_HPP
 
+/* VERSION */
+#define VERSION     "1.0.0"
+#define SERVERNAME  "Servidor Sirviente"
+
 /* COMMANDS */
 #define PASS    "PASS"
 #define NICK    "NICK"
@@ -13,6 +17,19 @@
 #define TOPIC   "TOPIC"
 #define MODE    "MODE"
 
+/* RPL_ISUPPORT */
+#define CHANLIMIT   5                   // Number of channels a client may join
+#define CHANMODES   "i,t,k,o,l"         // Channles modes available
+#define CHANNELLEN  20                  // Maximum length of a channel name
+#define CHANTYPES   "#"                 // Channel prefixes available
+#define KICKLEN     50                  // Maximun length for the <reason> of KICK cmd
+#define MAXTARGETS  4                   // Maximun number of targets a PRIVMSG
+#define NETWORK     "42 net -.-"        // Name of the IRC network
+#define NICKLEN     9                   // Maximun length of a nickname
+#define TARGMAX     "PRIVMSG:4,JOIN:4"  // Maximun number of targets allowed
+#define TOPICLEN    100                 // Maximun length of a topic
+#define USERLEN     12                  // Maximun length of a username
+
 /* CHARACTERS*/
 #define CRLF "\r\n"
 
@@ -21,6 +38,10 @@
 
 /* SYSTEM MESSAGES */
 #define RPL_CONNECTED(nick)							(": 001 " + nick + " : Welcome to the IRC server!" + CRLF)
+#define RPL_YOURHOST(nick)                          (": 002 " + nick + " : Your host is " + SERVERNAME + ", running version " + VERSION + CRLF)
+#define RPL_CREATE(nick, date)                      (": 003 " + nick + " : This server was created " + date + CRLF)
+#define RPL_MYINFO(nick)                            (": 004 " + nick + " : " +  SERVERNAME + " " + VERSION + CRLF)
+#define RPL_ISUPPORT(nick)                          (": 005 " + nick + " : 11 tokens :are supported by this server" + CRLF)
 #define RPL_UMODEIS(host, channel, mode, user)  	":" + host + " MODE " + channel + " " + mode + " " + user + CRLF
 #define RPL_CREATIONTIME(nick, channel, time) 		": 329 " + nick + " #" + channel + " " + time + CRLF
 #define RPL_CHANNELMODES(nick, channel, modes) 		": 324 " + nick + " #" + channel + " " + modes + CRLF
@@ -53,6 +74,8 @@
 #define ERR_NORECIPIENT(nick, command)              (": 411 " + nick + " :No recipient given " + command + CRLF)
 #define ERR_NOTEXTTOSEND(nick)                      (": 412 " + nick + " :No text to send" + CRLF)
 #define ERR_BADCHANNELKEY(nick, channel)            (": 475 " + nick + " " + channel + " Cannot join channel (+k)"+ CRLF) // TODO
+#define ERR_TOOMANYTARGETS(nick)                    (": 407 " + nick + " :Too many targets!" + CRLF)
+#define ERR_TOOMANYCHANNELS(nick)                   (": 405 " + nick + " :Too many targets!" + CRLF)
 
 /* COLORS */
 #define RED		"\033[0;91m"

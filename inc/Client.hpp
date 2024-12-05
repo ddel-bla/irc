@@ -23,6 +23,7 @@ class Client {
 		bool		autenticate;
 		bool		registred;
 		std::time_t connectionTime;
+		bool		disconnected;
 		std::vector<std::string>	channels;	// CHANNELS PARTICIPATING
 
 	public:
@@ -46,6 +47,7 @@ class Client {
 		bool isAutenticate() const;
 		bool isRegistred() const;
 		std::time_t getConnectionTime() const;
+		bool isDisconnected() const;
 
 		/* SETTERS */
 		void setFd(int fd);
@@ -56,6 +58,7 @@ class Client {
 		void setAutenticate(const bool autenticate);
 		void setRegistred(const bool registred);
 		void setConnectionTime(const std::time_t connectionTime);
+		void setDisconnected(const bool disconnected);
 
 		/* TO STRING */
 		void	toString() const;

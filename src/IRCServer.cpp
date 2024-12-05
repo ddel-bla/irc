@@ -3,7 +3,9 @@
 bool IRCServer::signal = false;
 
 /* PARAMETRIZED CONSTRUCTOR */
-IRCServer::IRCServer(int port, const std::string& password): port(port), password(password), server_fd(-1), logger("application.log", true) {}
+IRCServer::IRCServer(int port, const std::string& password): version(VERSION), servername(SERVERNAME), port(port), password(password), server_fd(-1), logger("application.log", true) {
+	this->creationDate = Utils::getCurrentTimeISO8601();
+}
 
 /* METHODS */
 bool IRCServer::startServer()
@@ -148,17 +150,19 @@ void IRCServer::processClient(int client_fd)
 // Removes a disconnected client
 void IRCServer::removeClient(int client_fd)
 {
+	close(client_fd);
+
 	std::map<int, Client*>::iterator it = clients.find(client_fd);
     
     if (it != clients.end()) {
         // Liberar la memoria del cliente
         it->second->setNickname("");
 		it->second->setUsername("");
-		it->second->setConnectionTime(0);        
+		it->second->setConnectionTime(0); 
+		it->second->setDisconnected(true);       
         // Eliminar la entrada del mapa
         //clients.erase(it);
     }
-
 
 	for (size_t i = 0; i < fds.size(); ++i) {
 		if (fds[i].fd == client_fd) {
@@ -189,6 +193,7 @@ void IRCServer::receiveData(int fd)
 		else {
 			logger.error(std::string("Error receiving data: ") + strerror(errno));
 		}
+		logger.info(client->fdToString() + " disconnecting...");
 		removeClient(fd);
 		return;
 	}
@@ -253,7 +258,7 @@ void IRCServer::quit(std::string command, int fd)
 
 	split_command = Utils::splitBySpaces(command);
 
-	std::cout << "Client disconnected" << std::endl;
+	logger.info("[QUIT] Client fd: " + Utils::intToString(fd) + " disconnecting...");
 	close(fd);
 	RemoveFds(fd);
 	removeClient(fd);
@@ -267,7 +272,7 @@ void	IRCServer::checkRegistrationTimeout(void)
     for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ) {
         Client* client = it->second;
 
-        if (!client->isRegistred() && std::difftime(now, client->getConnectionTime()) > REGISTRATION_TIMEOUT) {
+        if (!client->isRegistred() && !client->isDisconnected() && std::difftime(now, client->getConnectionTime()) > REGISTRATION_TIMEOUT) {
 			logger.info("[TIMEOUT] " + client->fdToString() + " did not complete the registered on time. Disconecting...");
 			close(it->first);
 			RemoveFds(it->first);
@@ -363,7 +368,7 @@ void	IRCServer::registerNickname(std::string command, Client& client)
 				if (!client.getUsername().empty())
 				{
 					if (!client.isRegistred()) // If already registered dont send
-						message.sendToClient(client.getFd(), RPL_CONNECTED(client.getNickname()));
+						sendwelcomeMessage(client.getFd(), client.getNickname());
 					else
 						logger.info("[NICK] User " + nickname + " registered successfylly.");
 					client.setRegistred(true);
@@ -425,7 +430,7 @@ void	IRCServer::registerUsername(std::string command, Client& client)
 			{
 				client.setRegistred(true);
 				logger.info("[USER] User " + client.getUsername() + " registered successfylly.");
-				message.sendToClient(client.getFd(), RPL_CONNECTED(client.getNickname()));	
+				sendwelcomeMessage(client.getFd(), client.getNickname());
 			}
 		}
 	}
@@ -478,6 +483,30 @@ void IRCServer::updateChannelsClientNickname(int fd, const std::string& newNickn
     }
 }
 
+
+/* SYSTEM MESSAGES */
+void IRCServer::sendwelcomeMessage(int fd, const std::string& nickname)
+{
+	message.sendToClient(fd, RPL_CONNECTED(nickname));
+	message.sendToClient(fd, RPL_YOURHOST(nickname));
+	message.sendToClient(fd, RPL_CREATE(nickname, this->creationDate));
+	message.sendToClient(fd, RPL_MYINFO(nickname));
+	message.sendToClient(fd, RPL_ISUPPORT(nickname));
+
+    std::string msg = "  RPL_ISUPPORT Parameters for " + nickname + ":\n";
+    msg += "  CHANLIMIT=" + Utils::intToString(CHANLIMIT) + " (Max channels a client may join)\n";
+    msg += "  CHANMODES=" + std::string(CHANMODES) + " (Available channel modes)\n";
+    msg += "  CHANNELLEN=" + Utils::intToString(CHANNELLEN) + " (Max length of a channel name)\n";
+    msg += "  CHANTYPES=" + std::string(CHANTYPES) + " (Channel prefixes available)\n";
+    msg += "  KICKLEN=" + Utils::intToString(KICKLEN) + " (Max length of the <reason> for KICK cmd)\n";
+    msg += "  MAXTARGETS=" + Utils::intToString(MAXTARGETS) + " (Max number of targets for PRIVMSG)\n";
+    msg += "  NETWORK=" + std::string(NETWORK) + " (Name of the IRC network)\n";
+    msg += "  NICKLEN=" + Utils::intToString(NICKLEN) + " (Max length of a nickname)\n";
+    msg += "  TARGMAX=" + std::string(TARGMAX) + " (Max number of targets allowed for commands)\n";
+    msg += "  TOPICLEN=" + Utils::intToString(TOPICLEN) + " (Max length of a topic)\n";
+    msg += "  USERLEN=" + Utils::intToString(USERLEN) + " (Max length of a username)\n" + CRLF;
+    message.sendToClient(fd, msg);
+}
 
 /* SIGNALS */
 void	IRCServer::handle_signals(int signum)

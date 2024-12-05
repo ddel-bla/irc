@@ -15,8 +15,11 @@ std::string	IRCServer::hx_privmsg_format(const std::string& command, Client& sen
 	// USER SENDER
 	message += "~" + sender.getUsername() + "@" + sender.getHostname() + " ";
 
+	// To upper command word (privmsg clau :hola)
+	std::string	cmd_formatted = Utils::capitalizeFirstWord(command);
+
 	// COMMAND
-	message += command + CRLF;
+	message += cmd_formatted + CRLF;
 
 	return (message);
 }
@@ -36,7 +39,7 @@ std::string	IRCServer::hx_join_format(const std::string& channel_name, Client& s
 	message += "~" + sender.getUsername() + "@" + sender.getHostname() + " ";
 
 	// COMMAND
-	message += "JOIN #" +channel_name;
+	message += "JOIN #" + channel_name;
 	
 	if (member_joined)
 		message += " * :realname\r\n";
@@ -59,6 +62,12 @@ void IRCServer::privMsg(const std::string& command, Client& client)
 	{
 		// 2. Extracting destinataries
 		std::vector<std::string> destinataries = Utils::split(split_command[1], ",");
+		if (destinataries.size() > MAXTARGETS)
+		{
+			logger.warning("[PRIVMSG] " + client.getNickname() + " selected too many targets (" + Utils::intToString(destinataries.size()) + ")");
+			message.sendToClient(client.getFd(), ERR_TOOMANYTARGETS(client.getNickname()));
+			return;
+		}
 
 		// 3. Format msg (hexchat)
 		std::string	msg_text = hx_privmsg_format(command, client);
@@ -133,7 +142,7 @@ bool IRCServer::existsChannelByName(const std::string& name)
 /* JOIN CHANNEL */
 void	IRCServer::join(const std::string& command, Client& client)
 {
-	logger.info("[JOIN] :: User " + client.getNickname() + " joining a channel.");
+	logger.info("[JOIN]:: User " + client.getNickname() + " joining a channel.");
 
 	// 1. Splitting cmd
 	std::vector<std::string> split_command = Utils::splitBySpaces(command);
@@ -143,6 +152,13 @@ void	IRCServer::join(const std::string& command, Client& client)
 	{	
 		// 2. Extracting channels & passwords
 		std::vector<std::string> cmd_channels = Utils::split(split_command[1], ",");
+		if (cmd_channels.size() > MAXTARGETS)
+		{
+			logger.warning("[JOIN] " + client.getNickname() + " selected too many targets (" + Utils::intToString(cmd_channels.size()) + ")");
+			message.sendToClient(client.getFd(), ERR_TOOMANYTARGETS(client.getNickname()));
+			return;
+		}
+		
 		std::vector<std::string> cmd_keys;
 		if (command_len == 3)
 			cmd_keys = Utils::split(split_command[2], ",");

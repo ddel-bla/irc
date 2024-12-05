@@ -21,6 +21,9 @@ class IRCServer
 {
 private:
 		/* ATRIBUTES */
+		std::string	version;
+		std::string	servername;
+		std::string	creationDate;
 		int			port;
 		std::string	password;
 		int			server_fd;
@@ -50,6 +53,7 @@ private:
 		bool	isValidNickname(const std::string nickname);
 		bool	isNicknameTaken(const std::string nickname);
 		void	updateChannelsClientNickname(int fd, const std::string& newNickname);
+		void	sendwelcomeMessage(int fd, const std::string& nickname);
 
 		/* HEXCLIENT MSG FORMAT */
 		std::string	hx_privmsg_format(const std::string& command, Client& sender);
@@ -64,9 +68,6 @@ private:
 		void	join(const std::string& command, Client& client);
 		void	showChannelHistory(const std::vector<std::string> history, int fd);
 
-		/* TO STRING */
-		void	toString() const;
-
 public:
 		/* PARAMETRIZED CONSTRUCTOR*/
 		IRCServer(int port, const std::string& password);
@@ -77,6 +78,9 @@ public:
 		
 		/* SIGNAL HANDLING*/
 		static void	handle_signals(int signal);
+
+		/* TO STRING */
+		void	toString() const;
 };
 
 #endif	//IRCServer.hpp

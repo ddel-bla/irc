@@ -1,7 +1,7 @@
 #include "Client.hpp"
 
 /* PARAMETRIZED CONSTRUCTOR */
-Client::Client(int fd): fd(fd), autenticate(false), registred(false) {
+Client::Client(int fd): fd(fd), autenticate(false), registred(false), disconnected(false) {
 	connectionTime = std::time(NULL);
 }
 
@@ -66,6 +66,10 @@ std::time_t Client::getConnectionTime() const {
     return connectionTime;
 }
 
+bool Client::isDisconnected() const {
+    return disconnected;
+}
+
 /* SETTERS */
 void Client::setFd(int fd) {
 	this->fd = fd;
@@ -95,9 +99,12 @@ void Client::setRegistred(const bool registred) {
     this->registred = registred;
 }
 
-void Client::setConnectionTime(const std::time_t connectionTime)
-{
+void Client::setConnectionTime(const std::time_t connectionTime) {
 	this->connectionTime = connectionTime;
+}
+
+void Client::setDisconnected(const bool disconnected) {
+    this->disconnected = disconnected;
 }
 
 /* TO STRING */
