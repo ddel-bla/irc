@@ -12,7 +12,7 @@ void Message::sendToChannel(const std::string& channel_name, const std::string& 
 	// Looks for the channel in the map
 	std::map<std::string, Channel>::iterator it = channels.find(channel_name);
 	if (it == channels.end()) {
-		std::cerr << "Channel " << channel_name << " not found." << std::endl;
+        std::cerr << "Channel " << channel_name << " not found." << std::endl;
 		return;
 	}
     

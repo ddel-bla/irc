@@ -12,19 +12,19 @@ bool IRCServer::startServer()
 {
 	server_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (server_fd < 0) {
-		std::cerr << "Error creating socket: " << strerror(errno) << std::endl;
+		logger.error(std::string("Error creating socket: ") + strerror(errno));
 		return false;
 	}
 
 	int opt = 1;
 	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-		std::cerr << "Error in setsockopt: " << strerror(errno) << std::endl;
+		logger.error(std::string("Error in setsockopt: ") + strerror(errno));
 		close(server_fd);
 		return false;
 	}
 
 	if (fcntl(server_fd, F_SETFL, O_NONBLOCK) < 0) {
-		std::cerr << "Error setting non-blocking mode: " << strerror(errno) << std::endl;
+		logger.error(std::string("Error setting non-blocking mode: ") + strerror(errno));
 		close(server_fd);
 		return false;
 	}
@@ -36,13 +36,13 @@ bool IRCServer::startServer()
 	address.sin_port = htons(port);
 
 	if (bind(server_fd, (struct sockaddr*)&address, sizeof(address)) < 0) {
-		std::cerr << "Error in bind: " << strerror(errno) << std::endl;
+		logger.error(std::string("Error in bind: ") + strerror(errno));
 		close(server_fd);
 		return false;
 	}
 
 	if (listen(server_fd, 5) < 0) {
-		std::cerr << "Error in listen: " << strerror(errno) << std::endl;
+		logger.error(std::string("Error in listen: ") + strerror(errno));
 		close(server_fd);
 		return false;
 	}
@@ -63,7 +63,7 @@ void IRCServer::run()
 	{
 		int ret = poll(fds.data(), fds.size(), 1000); // Timeout 1 sec
 		if (ret < 0  && !IRCServer::signal) {
-			std::cerr << "Error in poll: " << strerror(errno) << std::endl;
+			logger.error(std::string("Error in poll: ") + strerror(errno));
 			break;
 		}
 
@@ -99,13 +99,13 @@ void IRCServer::acceptClient()
 
     if (client_fd < 0) {
         if (errno != EWOULDBLOCK) {
-            std::cerr << "Error accepting client: " << strerror(errno) << std::endl;
+			logger.error(std::string("Error accepting client: ") + strerror(errno));
         }
         return;
     }
 
     if (fcntl(client_fd, F_SETFL, O_NONBLOCK) < 0) {
-        std::cerr << "Error setting client to non-blocking mode: " << strerror(errno) << std::endl;
+		logger.error(std::string("Error setting client to non-blocking mode: ") + strerror(errno));
         close(client_fd);
         return;
     }
@@ -135,7 +135,7 @@ void IRCServer::processClient(int client_fd)
 			std::string msg = "TO DO " + std::string(client->getNickname()) + " is disconnected";
 			message.sendToAll(msg, channels, client_fd);
 		} else {
-			std::cerr << "Error receiving data: " << strerror(errno) << std::endl;
+			logger.error(std::string("Error receiving data: ") + strerror(errno));
 		}
 		close(client_fd);
 		removeClient(client_fd);

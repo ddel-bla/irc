@@ -13,13 +13,6 @@ Client::~Client(void) {
 }
 
 /* METHODS */
-void Client::sendMessage(const std::string& message) const {
-	std::string formattedMessage = message + "\r\n"; // Add carriage return and newline
-	ssize_t bytesSent = send(fd, formattedMessage.c_str(), formattedMessage.size(), 0);
-	if (bytesSent < 0) {
-		std::cerr << "Error sending message to " << nickname << ": " << strerror(errno) << std::endl;
-	}
-}
 
 void Client::addChannel(const std::string& channel)
 {

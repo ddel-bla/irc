@@ -5,7 +5,7 @@
 Logger::Logger(const std::string& filename="", bool logToConsole=true) : toConsole(logToConsole)
 {
     if (!filename.empty()) {
-        logFile.open(filename.c_str(), std::ios::app);
+        logFile.open(filename.c_str(), std::ios::out);
         if (!logFile.is_open()) {
             std::cerr << "Error: Can not open logfile: " << filename << "\n";
         }

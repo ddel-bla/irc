@@ -36,7 +36,6 @@ class Client {
 
 		/* METHODS */
 		void 	clearBuffer(void);
-		void 	sendMessage(const std::string& message) const;
 		void 	addChannel(const std::string& channel);
 		size_t	getChannelCount() const;
 		
