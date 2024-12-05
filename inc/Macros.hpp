@@ -36,6 +36,9 @@
 /* TIMEOUT */
 #define REGISTRATION_TIMEOUT 45
 
+/* QUIT default reason*/
+#define QUIT_DEFAULT "QUIT :Leaving"
+
 /* SYSTEM MESSAGES */
 #define RPL_CONNECTED(nick)							(": 001 " + nick + " : Welcome to the IRC server!" + CRLF)
 #define RPL_YOURHOST(nick)                          (": 002 " + nick + " : Your host is " + SERVERNAME + ", running version " + VERSION + CRLF)

@@ -42,7 +42,7 @@ private:
 		void removeClient(int client_fd);
 		void receiveData(int fd);
 		void process_command(std::string command, int fd);
-		void quit(std::string command, int fd);
+		void quit(std::string command, Client& client);
 		void RemoveFds(int fd);
 
 		/* REGISTRATION METHODS */

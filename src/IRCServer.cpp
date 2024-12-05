@@ -122,31 +122,6 @@ void IRCServer::acceptClient()
     logger.info("New client connected in fd: " + Utils::intToString(client_fd) + "and ip: " + new_client->getHostname());
 }
 
-// Processes messages from a client
-void IRCServer::processClient(int client_fd)
-{
-	char buffer[512];
-	int bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
-
-	if (bytes_read <= 0) {
-		if (bytes_read == 0) {
-			// Client disconnected
-			Client* client = clients[client_fd];
-			std::string msg = "TO DO " + std::string(client->getNickname()) + " is disconnected";
-			message.sendToAll(msg, channels, client_fd);
-		} else {
-			logger.error(std::string("Error receiving data: ") + strerror(errno));
-		}
-		close(client_fd);
-		removeClient(client_fd);
-		return;
-	}
-
-	buffer[bytes_read] = '\0';
-	message.sendToAll(buffer, channels, client_fd);
-	std::cout << "Message received from FD " << client_fd << ": " << buffer;
-}
-
 // Removes a disconnected client
 void IRCServer::removeClient(int client_fd)
 {
@@ -174,44 +149,46 @@ void IRCServer::removeClient(int client_fd)
 
 void IRCServer::receiveData(int fd)
 {
-	char		buffer[512];
-	size_t		bytes;
-	Client*		client = clients[fd];
-	std::vector<std::string> commands;
+    char 		buffer[512];
+    size_t 		bytes;
+    Client* 	client = clients[fd];
+    std::vector<std::string> commands;
 
-	memset(buffer, 0, sizeof(buffer));
-	bytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
+    memset(buffer, 0, sizeof(buffer));
+    bytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
 
-	if (bytes <= 0)
-	{
-		if (bytes == 0) {
-			// Client disconnected
-			std::string msg = "TO DO " + std::string(client->getNickname()) + " is disconnected";
-			message.sendToAll(msg, channels, fd);
-		}
-		else {
-			logger.error(std::string("Error receiving data: ") + strerror(errno));
-		}
-		logger.info(client->fdToString() + " disconnecting...");
-		removeClient(fd);
-		return;
-	}
-    
-    client->setBuffer(buffer);
-	logger.info(client->fdToString() + " sent: " + client->getBuffer());
-
-    if (client->getBuffer().find_first_of(CRLF) == std::string::npos)
+    if (bytes <= 0)
+    {
+        if (bytes == 0) {
+            std::string msg = hx_privmsg_format(QUIT_DEFAULT, *client);
+            logger.info(client->fdToString() + " disconnecting... (" + msg + ")");
+            message.sendToAll(msg, channels, client->getFd());
+        } 
+        else
+            logger.error(std::string("Error receiving data: ") + strerror(errno));
+        removeClient(fd);
         return;
+    }
 
-    // SPLIT BY '\r\n'
-    commands = Utils::split(client->getBuffer(), CRLF);
-	
-    // PROCESS EACH COMMAND
-    for (size_t i = 0; i < commands.size(); i++)
-		process_command(commands[i], fd);
+    if (client)
+    {
+        client->appendToBuffer(buffer, bytes);
+        logger.info(client->fdToString() + " sent: " + client->getBuffer());
+
+        if (client->getBuffer().find_first_of(CRLF) == std::string::npos)
+		{
+			return;
+		}
+
+        // SPLIT BY '\r\n'
+        commands = Utils::split(client->getBuffer(), CRLF);
         
-	if (client)
-    	client->clearBuffer();
+        // PROCESS EACH COMMAND
+        for (size_t i = 0; i < commands.size(); i++)
+            process_command(commands[i], fd);
+        
+        client->clearBuffer();
+    }
 }
 
 void IRCServer::process_command(std::string command, int fd)
@@ -230,7 +207,7 @@ void IRCServer::process_command(std::string command, int fd)
 	
 	// TO upper
 	split_command[0] = Utils::toUpper(split_command[0]);
-
+	cliente->toString();
 	if (split_command[0] == PASS)
 		authenticate(command, *cliente);
 	else if (split_command[0] == USER)
@@ -238,7 +215,7 @@ void IRCServer::process_command(std::string command, int fd)
 	else if (split_command[0] == NICK)
 		registerNickname(command, *cliente);
 	else if (split_command[0] == QUIT)
-		quit(command, fd);
+		quit(command, *cliente);
 	else if (cliente->isRegistred()) // Si está registrado puede ejecutar otros comandos
 	{
 		if (split_command[0] == PRIVMSG)
@@ -251,16 +228,19 @@ void IRCServer::process_command(std::string command, int fd)
 	
 }
 
-void IRCServer::quit(std::string command, int fd)
+void IRCServer::quit(std::string command, Client& client)
 {
 	std::vector<std::string> split_command;
 
 	split_command = Utils::splitBySpaces(command);
 
-	logger.info("[QUIT] Client fd: " + Utils::intToString(fd) + " disconnecting...");
-	close(fd);
-	RemoveFds(fd);
-	removeClient(fd);
+	logger.info("[QUIT] " + client.fdToString() + " disconnecting...");
+	std::string msg = hx_privmsg_format(command, client);
+	message.sendToAll(msg, channels, client.getFd());
+	
+	close(client.getFd());
+	RemoveFds(client.getFd());
+	removeClient(client.getFd());
 }
 
 /* REGISTRATION PROCESS */
@@ -430,7 +410,8 @@ void	IRCServer::registerUsername(std::string command, Client& client)
 			{
 				logger.info("[USER] " + client.fdToString() + " --> Registered with username '" + split_command[1] + "'.");
 				client.setUsername(split_command[1]);
-				registerRealname(command, client);
+				std::cout << client.getUsername() << std::endl;
+				//registerRealname(command, client);
 				
 				// 4. Set registered to true if NICK and USER completed
 				if (!client.getNickname().empty())

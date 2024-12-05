@@ -25,6 +25,11 @@ void Client::clearBuffer(void)
 {
     buffer.clear();
 }
+
+void Client::appendToBuffer(const char* data, size_t length) {
+    buffer.append(data, length);
+}
+
 size_t Client::getChannelCount() const {
         return channels.size();
 }

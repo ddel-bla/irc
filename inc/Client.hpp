@@ -38,6 +38,7 @@ class Client {
 		void 	clearBuffer(void);
 		void 	addChannel(const std::string& channel);
 		size_t	getChannelCount() const;
+		void 	appendToBuffer(const char* data, size_t length);
 		
 		/* GETTERS */
 		int getFd() const;
