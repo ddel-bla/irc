@@ -32,6 +32,9 @@ void Client::clearBuffer(void)
 {
     buffer.clear();
 }
+size_t Client::getChannelCount() const {
+        return channels.size();
+}
 
 /* GETTERS */
 int Client::getFd() const {
@@ -48,6 +51,10 @@ const std::string& Client::getUsername() const {
 
 const std::string& Client::getHostname() const {
 	return hostname;
+}
+
+const std::string& Client::getRealname() const {
+    return realname;
 }
 
 const std::string& Client::getBuffer() const {
@@ -85,6 +92,10 @@ void Client::setUsername(const std::string& username) {
 
 void Client::setHostname(const std::string& hostname) {
 	this->hostname = hostname;
+}
+
+void Client::setRealname(const std::string& realname) {
+    this->realname = realname;
 }
 
 void Client::setBuffer(const std::string& buffer) {

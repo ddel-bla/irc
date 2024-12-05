@@ -18,6 +18,7 @@ class Client {
 		int 		fd;
 		std::string nickname;
 		std::string username;
+		std::string realname;
 		std::string hostname;
 		std::string buffer;
 		bool		autenticate;
@@ -37,11 +38,13 @@ class Client {
 		void 	clearBuffer(void);
 		void 	sendMessage(const std::string& message) const;
 		void 	addChannel(const std::string& channel);
+		size_t	getChannelCount() const;
 		
 		/* GETTERS */
 		int getFd() const;
 		const std::string& getNickname() const;
 		const std::string& getUsername() const;
+		const std::string& getRealname() const;
 		const std::string& getHostname() const;
 		const std::string& getBuffer() const;
 		bool isAutenticate() const;
@@ -53,6 +56,7 @@ class Client {
 		void setFd(int fd);
 		void setNickname(const std::string& nickname);
 		void setUsername(const std::string& username);
+		void setRealname(const std::string& realname);
 		void setHostname(const std::string& hostname);
 		void setBuffer(const std::string& buffer);
 		void setAutenticate(const bool autenticate);

@@ -51,7 +51,7 @@
 #define RPL_NAMREPLY(nick, channel, clientslist) 	(": 353 " + nick + " @ #" + channel + " :" + clientslist + CRLF)
 #define RPL_ENDOFNAMES(nick, channel) 				(": 366 " + nick + " #" + channel + " :END of /NAMES list" + CRLF)
 #define RPL_TOPICIS(nick, channel, topic) 			(": 332 " + nick + " #" +channel + " :" + topic + CRLF)
-#define RPL_CHANGEDNICK(nick)						(": 999 " + nick + " : Nickname changed!" + CRLF)
+#define RPL_CHANGEDNICK(nick)						(": 990 " + nick + " : Nickname changed!" + CRLF)
 
 /* SYSTEM ERRORS */
 #define ERR_NEEDMODEPARM(channel, mode) 			(": 696 #" + channel + " * You must specify a parameter for the key mode. " + mode + CRLF)
@@ -61,8 +61,8 @@
 #define ERR_NEEDMOREPARAMS(nick)                    (": 461 " + nick + " :Not enough parameters." + CRLF)
 #define ERR_PASSWDMISMATCH(nick)                    (": 464 " + nick + " :Password incorrect !" + CRLF )
 #define ERR_CHANNELNOTFOUND(nick, channel) 			(": 403 " + nick + " " + channel + " :No such channel" + CRLF)
-#define ERR_NOTOPERATOR(channel) 					(": 482 #" + channel + " :You're not a channel operator" + CRLF)
-#define ERR_NOSUCHNICK(name) 				        (": 401 #" + name + " :No such nick/channel" + CRLF )
+#define ERR_NOTOPERATOR(channel) 					(": 482 " + channel + " :You're not a channel operator" + CRLF)
+#define ERR_NOSUCHNICK(name) 				        (": 401 " + name + " :No such nick/channel" + CRLF )
 #define ERR_INCORPASS(nick) 						(": 464 " + nick + " :Password incorrect !" + CRLF )
 #define ERR_ALREADYREGISTERED(nick) 				(": 462 " + nick + " :You may not reregister !" + CRLF )
 #define ERR_NONICKNAME(nick)                        (": 431 " + nick + " :No nickname given" + CRLF )
@@ -75,7 +75,10 @@
 #define ERR_NOTEXTTOSEND(nick)                      (": 412 " + nick + " :No text to send" + CRLF)
 #define ERR_BADCHANNELKEY(nick, channel)            (": 475 " + nick + " " + channel + " Cannot join channel (+k)"+ CRLF) // TODO
 #define ERR_TOOMANYTARGETS(nick)                    (": 407 " + nick + " :Too many targets!" + CRLF)
-#define ERR_TOOMANYCHANNELS(nick)                   (": 405 " + nick + " :Too many targets!" + CRLF)
+#define ERR_TOOMANYCHANNELS(nick)                   (": 405 " + nick + " :You have joined too many channels!" + CRLF)
+#define ERR_USERTOOLONG(nick)                       (": 991 " + nick + " :Username too long! ( max length: " + Utils::intToString(USERLEN) + ")" + CRLF)
+#define ERR_NICKTOOLONG(nick)                       (": 992 " + nick + " :Nick too long! ( max length: " + Utils::intToString(NICKLEN) + " )" + CRLF)
+#define ERR_INVALIDCHANNAME(channel)                (": 993 " + channel + " :Invalid channel name! ('#', '&' not allowed, max length: " + Utils::intToString(CHANNELLEN) + " )" + CRLF)
 
 /* COLORS */
 #define RED		"\033[0;91m"

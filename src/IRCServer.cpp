@@ -172,7 +172,6 @@ void IRCServer::removeClient(int client_fd)
 	}
 }
 
-
 void IRCServer::receiveData(int fd)
 {
 	char		buffer[512];
@@ -339,12 +338,17 @@ void	IRCServer::registerNickname(std::string command, Client& client)
 			//2. Skip 'NICK' & remove ':' NICK :wii
 			std::string	nickname = Utils::removeLeadingChar(split_command[1], ':');
 
-			if (!isValidNickname(nickname))
+			if (!isValidNickname(nickname))	// Valid characters
 			{
 				logger.warning("[NICK] " + client.fdToString() + " --> '" + nickname +"' is invalid.");
 				message.sendToClient(client.getFd(), ERR_ERRONEUSNICK(nickname));
 			}
-			else if (isNicknameTaken(nickname))
+			else if (nickname.size() > NICKLEN)	// Valid length
+			{
+				logger.warning("[NICK] " + client.fdToString() + " --> '" + nickname +"' too long.");
+				message.sendToClient(client.getFd(), ERR_NICKTOOLONG(nickname));
+			}
+			else if (isNicknameTaken(nickname))	// Not taken
 			{
 				logger.warning("[NICK] " + client.fdToString() + " --> '" + nickname +"' in use.");
 				message.sendToClient(client.getFd(), ERR_NICKCOLLISION(nickname));
@@ -379,7 +383,7 @@ void	IRCServer::registerNickname(std::string command, Client& client)
 					}
 				}
 			}
-			toString();
+			toString(); // REMOVE
 		}
 		else if (command_len < 2) 	// Not enough params
 		{
@@ -422,15 +426,24 @@ void	IRCServer::registerUsername(std::string command, Client& client)
 		else
 		{
 			// 3. Set username
-			logger.info("[USER] " + client.fdToString() + " --> Registered with username '" + split_command[1] + "'.");
-			client.setUsername(split_command[1]);
-			
-			// 4. Set registered to true if NICK and USER completed
-			if (!client.getNickname().empty())
+			if (split_command[1].size() < USERLEN)
 			{
-				client.setRegistred(true);
-				logger.info("[USER] User " + client.getUsername() + " registered successfylly.");
-				sendwelcomeMessage(client.getFd(), client.getNickname());
+				logger.info("[USER] " + client.fdToString() + " --> Registered with username '" + split_command[1] + "'.");
+				client.setUsername(split_command[1]);
+				registerRealname(command, client);
+				
+				// 4. Set registered to true if NICK and USER completed
+				if (!client.getNickname().empty())
+				{
+					client.setRegistred(true);
+					logger.info("[USER] User " + client.getUsername() + " registered successfylly.");
+					sendwelcomeMessage(client.getFd(), client.getNickname());
+				}
+			}
+			else
+			{
+				logger.warning("[USER] " + client.fdToString() + " --> '" + split_command[1] + "' Name too long!");
+				message.sendToClient(client.getFd(), ERR_USERTOOLONG(split_command[1]));
 			}
 		}
 	}
@@ -469,6 +482,27 @@ bool	IRCServer::isNicknameTaken(const std::string nickname)
     }
 
 	return (false);
+}
+
+void	IRCServer::registerRealname(std::string& command, Client& client)
+{
+	std::istringstream  ss(command);
+    std::string         word;
+    std::string         realname;
+
+    // SKIP FIRST FOUR WORDS
+    ss >> word;
+    ss >> word;
+	ss >> word;
+	ss >> word;
+
+	std::getline(ss, realname); 
+
+    // DELETE LEADING ':'
+    if (!realname.empty() && realname[0] == ' ')
+        realname = realname.substr(1);
+
+    client.setRealname(realname);
 }
 
 void IRCServer::updateChannelsClientNickname(int fd, const std::string& newNickname)

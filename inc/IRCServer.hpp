@@ -50,6 +50,7 @@ private:
 		void	authenticate(std::string command, Client& client);
 		void	registerNickname(std::string command, Client& client);
 		void	registerUsername(std::string command, Client& client);
+		void	registerRealname(std::string& command, Client& Client);
 		bool	isValidNickname(const std::string nickname);
 		bool	isNicknameTaken(const std::string nickname);
 		void	updateChannelsClientNickname(int fd, const std::string& newNickname);
@@ -66,6 +67,7 @@ private:
 
 		/* JOIN */
 		void	join(const std::string& command, Client& client);
+		bool	isChannelNameValid(const std::string& channelName);
 		void	showChannelHistory(const std::vector<std::string> history, int fd);
 
 public:

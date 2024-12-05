@@ -62,7 +62,7 @@ void IRCServer::privMsg(const std::string& command, Client& client)
 	{
 		// 2. Extracting destinataries
 		std::vector<std::string> destinataries = Utils::split(split_command[1], ",");
-		if (destinataries.size() > MAXTARGETS)
+		if (destinataries.size() > MAXTARGETS)	// Limit destinataries
 		{
 			logger.warning("[PRIVMSG] " + client.getNickname() + " selected too many targets (" + Utils::intToString(destinataries.size()) + ")");
 			message.sendToClient(client.getFd(), ERR_TOOMANYTARGETS(client.getNickname()));
@@ -78,9 +78,15 @@ void IRCServer::privMsg(const std::string& command, Client& client)
 		{
 			const std::string& dest_nick = *it;
 			int dest_fd = -1;
-
+			
+			// 5. Empty destinatary or #
+			if (dest_nick.empty() || (dest_nick.size() == 1 && dest_nick[0] == '#'))
+			{
+				logger.info("[PRIVMSG] Empty dest.");
+				continue;
+			}
 			// 5. Destinatary is a channel
-			if (dest_nick.size() > 1 && dest_nick[0] == '#')
+			else if (dest_nick.size() > 1 && dest_nick[0] == '#')
 			{
 				std::string realName = Utils::removeLeadingChar(dest_nick, '#');
 				if (!existsChannelByName(realName))		// does not exist
@@ -99,7 +105,7 @@ void IRCServer::privMsg(const std::string& command, Client& client)
 				if (dest_fd == -1)		// does not exist
 				{	
 					logger.warning("[PRIVMSG] User '" + dest_nick + " not found.");
-					message.sendToClient(client.getFd(), ERR_NOSUCHNICK(client.getNickname()));
+					message.sendToClient(client.getFd(), ERR_NOSUCHNICK(dest_nick));
 					continue;
 				}
 				// 6. Send msg to client
@@ -167,61 +173,98 @@ void	IRCServer::join(const std::string& command, Client& client)
 		for (size_t i = 0; i < cmd_channels.size(); ++i)
 		{	
 			// 5. Get channel name and key
-			std::string channel_name = Utils::removeLeadingChar(cmd_channels[i], '#');
-    		std::string channel_key = (i < cmd_keys.size()) ? cmd_keys[i] : "";
+			std::string channelName = Utils::removeLeadingChar(cmd_channels[i], '#');
+			if (channelName.empty() || (channelName.size() == 1 && channelName[0] == '#'))
+			{
+				logger.info("[JOIN] Empty channel.");
+				continue;
+			}
+    		std::string channelKey = (i < cmd_keys.size()) ? cmd_keys[i] : "";
 
 			// 3. Format msg (hexchat)
-			std::string msg_text = hx_join_format(channel_name, client, false);
+			std::string msg_text = hx_join_format(channelName, client, false);
 			logger.info("[JOIN] :: HC Message: " + msg_text);
 
     		// 6. Search in existing channels
-    		std::map<std::string, Channel>::iterator it = channels.find(channel_name);
+    		std::map<std::string, Channel>::iterator it = channels.find(channelName);
+			
 			// 7. Channel does not exist
 			if (it == channels.end())
 			{ 
-				logger.info("[JOIN] :: Creating channel : " + channel_name + " " + channel_key);
-				if (!channel_key.empty())	// PASSWD
-					channels.insert(std::make_pair(channel_name, Channel(channel_name, channel_key)));
+				client.toString();
+				if (!isChannelNameValid(channelName)) // Valid channel name
+				{
+					logger.warning("[JOIN] :: Wrong channel name : " + channelName + ".");
+					message.sendToClient(client.getFd(), ERR_INVALIDCHANNAME(channelName));
+					continue; // Skip to the next channel
+				}
+				else if (client.getChannelCount() + 1 > CHANLIMIT)	// Channel limit
+				{
+					logger.warning("[JOIN] :: User: " + client.getNickname() + " has reached the maximum number of channels.");
+					message.sendToClient(client.getFd(), ERR_TOOMANYCHANNELS(client.getNickname()));
+					continue; // Skip to the next channel
+				}
+				
+				logger.info("[JOIN] :: Creating channel : " + channelName + " " + channelKey);
+				if (!channelKey.empty())	// PASSWD
+					channels.insert(std::make_pair(channelName, Channel(channelName, channelKey)));
 				else						// NO PASSWD
-					channels.insert(std::make_pair(channel_name, Channel(channel_name)));
-
-				it = channels.find(channel_name);
+					channels.insert(std::make_pair(channelName, Channel(channelName)));
 
 				// 8. User becomes operator
+				it = channels.find(channelName);
 				it->second.addOperator(client.getFd(), &client);				
     		} 
 			// 7. Channel does exist
 			else
 			{
 				// 8. Wrong key entered
-				if (!it->second.getChannelKey().empty() && (channel_key.empty() || it->second.getChannelKey() != channel_key)) {
-					logger.info("[JOIN] :: Wrong channel key : " + channel_name + ". Entered key: " + channel_key + ", Actual key: " + it->second.getChannelKey());
+				if (!it->second.getChannelKey().empty() && (channelKey.empty() || it->second.getChannelKey() != channelKey)) {
+					logger.info("[JOIN] :: Wrong channel key : " + channelName + ". Entered key: " + channelKey + ", Actual key: " + it->second.getChannelKey());
 					message.sendToClient(client.getFd(), ERR_BADCHANNELKEY(client.getNickname(), it->second.getName()));
 					continue; // Skip to the next channel
 				}
     		}
 			// 11. Send join msg
-			message.sendToChannel(channel_name, RPL_JOINMSG(client.getNickname(), client.getHostname(), cmd_channels[0]), channels);
+			message.sendToChannel(channelName, RPL_JOINMSG(client.getNickname(), client.getHostname(), cmd_channels[0]), channels);
 
 			// 9. Send hexchat client msg
 			if (!it->second.isMember(client.getFd()))
 			{
 				message.sendToClient(client.getFd(), msg_text);
-				msg_text = hx_join_format(channel_name, client, true);
+				msg_text = hx_join_format(channelName, client, true);
 				logger.info("[JOIN] :: HC member join message: " + msg_text);
-				message.sendToChannel(channel_name, msg_text, channels, -1);
+				message.sendToChannel(channelName, msg_text, channels, -1);
 			}
 			
 			// 10. Show history (if channel is new there will be no history)
 			//showChannelHistory(it->second.getHistory(), client.getFd());
 
 			// 12. Add clients to client's channel and channel's members
-    		client.addChannel(channel_name);
+    		client.addChannel(channelName);
     		it->second.addMember(client.getFd(), &client);
 		}
 	}
 	else	// NEED MORE PARAMS
 		message.sendToClient(client.getFd(), ERR_NEEDMOREPARAMS(client.getNickname()));
+}
+
+bool	IRCServer::isChannelNameValid(const std::string& channelName)
+{
+    if (channelName.empty() || channelName.length() > CHANNELLEN) {
+        return false;
+    }
+
+    for (size_t i = 1; i < channelName.length(); ++i) {
+        char c = channelName[i];
+        if (!std::isalnum(c) && c != '_' && c != '-' && c != '[' && c != ']' && c != '{' && c != '}' && c != '|' && c != '#' && c != '&') {
+            return false;
+        }
+        if (c == ' ' || c == ',') {
+            return false;
+        }
+    }
+    return true;
 }
 
 void	IRCServer::showChannelHistory(const std::vector<std::string> history, int fd)
