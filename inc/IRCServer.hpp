@@ -14,39 +14,67 @@
 #include "IRCServer.hpp"
 #include "Message.hpp"
 #include "Macros.hpp"
+#include "Commands.hpp"
+#include "Logger.hpp"
 
 class IRCServer
 {
 private:
 		/* ATRIBUTES */
-		int	port;
-		std::string password;
-		int server_fd;
-		std::vector<struct pollfd> fds;
-		std::map<int, Client*> clients; // FD to Client object mapping
-		std::map<std::string, Channel> channels; // Map to manage channels
-		Message message; // New attribute to handle events
+		std::string	version;
+		std::string	servername;
+		std::string	creationDate;
+		int			port;
+		std::string	password;
+		int			server_fd;
+		std::vector<struct pollfd>		fds;
+		std::map<int, Client*>			clients; // FD to Client object mapping
+		std::map<std::string, Channel>	channels; // Map to manage channels
+		Logger 							logger;		// Logger
+		Message 						message; // New attribute to handle events
 
-		/* GLOBAL VARIABLES*/
+		/* GLOBAL VARIABLES */
 		static bool signal;
-
+		
 		/* METHODS */
 		void acceptClient();
 		void processClient(int client_fd);
 		void removeClient(int client_fd);
-
 		void receiveData(int fd);
 		void process_command(std::string command, int fd);
-		void quit(std::string command, int fd);
-		void RemoveFds(int fd);
+		void quit(std::string command, Client& client);
+		void removeFds(int fd);
 
 		/* REGISTRATION METHODS */
 		void 	checkRegistrationTimeout(void);
 		void	authenticate(std::string command, Client& client);
 		void	registerNickname(std::string command, Client& client);
 		void	registerUsername(std::string command, Client& client);
+		void	registerRealname(std::string& command, Client& Client);
 		bool	isValidNickname(const std::string nickname);
 		bool	isNicknameTaken(const std::string nickname);
+		void	updateChannelsClientNickname(int fd, const std::string& newNickname);
+		void	sendwelcomeMessage(int fd, const std::string& nickname);
+
+		/* HEXCLIENT MSG FORMAT */
+		std::string	hx_generic_format(const std::string& command, Client& sender);
+		std::string	hx_join_format(const std::string& command, Client& sender, bool member_joined);
+
+		/* PRIVMSG */
+		void	privMsg(const std::string& command, Client& clien);
+		int		findFdByNickname(const std::string& nickname);
+		bool	existsChannelByName(const std::string& name);
+
+		/* JOIN */
+		void	join(const std::string& command, Client& client);
+		bool	isChannelNameValid(const std::string& channelName);
+		void	showChannelHistory(const std::vector<std::string> history, int fd);
+
+		/* CHANNEL CMDS */
+		void	kick(const std::string& command, Client& client);
+		void	invite(const std::string& command, Client& client);
+		void	topic(const std::string& command, Client& client);
+		void	mode(const std::string& command, Client& client);
 
 public:
 		/* PARAMETRIZED CONSTRUCTOR*/
@@ -58,6 +86,9 @@ public:
 		
 		/* SIGNAL HANDLING*/
 		static void	handle_signals(int signal);
+
+		/* TO STRING */
+		void	toString() const;
 };
 
 #endif	//IRCServer.hpp

@@ -33,8 +33,97 @@ std::vector<std::string>    Utils::splitBySpaces(const std::string& str)
     return (items);
 }
 
-void    Utils::removeLeadingChar(std::string& str, char c)
+std::string    Utils::removeLeadingChar(const std::string& str, char c)
 {   
-    if (!str.empty() && str[0] == c)
-        str.erase(str.begin());
+    if (!str.empty() && str[0] == c) {
+        return str.substr(1);
+    }
+    return str;
+}
+
+std::string joinIntVector(const std::vector<int>& vec)
+{
+    std::string         result;
+    std::stringstream   ss;
+    
+    for (size_t i = 0; i < vec.size(); ++i) {
+        ss << vec[i];
+        
+        if (i != vec.size() - 1) {
+            ss << " ";
+        }
+    }
+
+    result = ss.str();
+    return result;
+}
+
+std::string Utils::getMessageWithoutPrefix(const std::string& message)
+{
+    std::istringstream  ss(message);
+    std::string         word;
+    std::string         result;
+
+    // SKIP FIRST TWO WORDS
+    ss >> word;
+    ss >> word;
+    
+    std::getline(ss, result); 
+
+    // DELETE LEADING ':'
+    if (!result.empty() && result[0] == ' ')
+        result = result.substr(1);
+
+    return result;
+}
+
+std::string Utils::getCurrentTimeISO8601(void)
+{
+    struct timeval tv;
+    char buffer[30];
+    std::time_t t;
+    struct tm* tm_info;
+    std::ostringstream oss;
+
+    gettimeofday(&tv, NULL);
+
+    t = tv.tv_sec;
+    tm_info = gmtime(&t);
+
+    std::strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S", tm_info);
+
+    oss << buffer << "." << (tv.tv_usec / 1000) << "Z";
+
+    return oss.str();
+}
+
+std::string Utils::toUpper(const std::string& input)
+{
+    std::string result = input;
+    for (std::string::iterator it = result.begin(); it != result.end(); ++it) {
+        *it = std::toupper(*it);
+    }
+    return result;
+}
+
+std::string Utils::intToString(int number)
+{
+    std::ostringstream oss;
+    oss << number;
+    return oss.str();
+}
+
+std::string Utils::capitalizeFirstWord(const std::string& input)
+{
+    std::string result = input;
+    bool isFirstWord = true;
+    
+    for (size_t i = 0; i < result.size(); ++i) {
+        if (isFirstWord && std::isalpha(result[i])) {
+            result[i] = std::toupper(result[i]);
+        } else if (!std::isalpha(result[i]) && result[i] != ':') {
+            return result;
+        }
+    }
+    return result;
 }

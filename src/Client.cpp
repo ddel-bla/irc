@@ -1,83 +1,24 @@
 #include "Client.hpp"
 
 /* PARAMETRIZED CONSTRUCTOR */
-Client::Client(int fd): socket_fd(fd), autenticate(false), registred(false) {
+Client::Client(int fd): fd(fd), autenticate(false), registred(false), disconnected(false) {
 	connectionTime = std::time(NULL);
 }
 
 /* DESTRUCTOR */
 Client::~Client(void) {
-	if (socket_fd >= 0) {
-		close(socket_fd);
+	if (fd >= 0) {
+		close(fd);
 	}
 }
 
+/* METHODS */
 
-/* GETTERS & SETTERS */
-
-// Returns the socket descriptor
-int Client::getSocketFD() const {
-	return socket_fd;
-}
-
-// Returns the nickname
-const std::string& Client::getNickname() const {
-	return nickname;
-}
-
-// Returns the username
-const std::string& Client::getUsername() const {
-	return username;
-}
-
-// Returns the hostname
-const std::string& Client::getHostname() const {
-	return hostname;
-}
-
-// Get buffer
-const std::string& Client::getBuffer() const {
-    return buffer;
-}
-
-// Is Autenticate
-bool Client::isAutenticate() const {
-    return autenticate;
-}
-
-// Is Registred
-bool Client::isRegistred() const {
-    return registred;
-}
-
-// Get connectionTime
-std::time_t Client::getConnectionTime() const {
-        return connectionTime;
-}
-
-// Sets the nickname
-void Client::setNickname(const std::string& nick) {
-	nickname = nick;
-}
-
-// Modifica el username
-void Client::setUsername(const std::string& username) {
-    this->username = username;
-}
-
-// Set buffer
-void Client::setBuffer(const std::string& buffer) {
-    this->buffer = buffer;
-}
-
-// Set Autenticate
-void Client::setAutenticate(const bool autenticate) {
-    this->autenticate = autenticate;
-}
-
-// Set Registred
-void Client::setRegistred(const bool registred) {
-    this->registred = registred;
+void Client::addChannel(const std::string& channel)
+{
+	if (std::find(this->channels.begin(), this->channels.end(), channel) == this->channels.end()) {
+        this->channels.push_back(channel);
+    }
 }
 
 void Client::clearBuffer(void)
@@ -85,11 +26,132 @@ void Client::clearBuffer(void)
     buffer.clear();
 }
 
-// Sends a message to the client
-void Client::sendMessage(const std::string& message) const {
-	std::string formattedMessage = message + "\r\n"; // Add carriage return and newline
-	ssize_t bytesSent = send(socket_fd, formattedMessage.c_str(), formattedMessage.size(), 0);
-	if (bytesSent < 0) {
-		std::cerr << "Error sending message to " << nickname << ": " << strerror(errno) << std::endl;
-	}
+void Client::appendToBuffer(const char* data, size_t length) {
+    buffer.append(data, length);
+}
+
+size_t Client::getChannelCount() const {
+        return channels.size();
+}
+
+/* GETTERS */
+int Client::getFd() const {
+	return fd;
+}
+
+const std::string& Client::getNickname() const {
+	return nickname;
+}
+
+const std::string& Client::getUsername() const {
+	return username;
+}
+
+const std::string& Client::getHostname() const {
+	return hostname;
+}
+
+const std::string& Client::getRealname() const {
+    return realname;
+}
+
+const std::string& Client::getBuffer() const {
+    return buffer;
+}
+
+bool Client::isAutenticate() const {
+    return autenticate;
+}
+
+bool Client::isRegistred() const {
+    return registred;
+}
+
+std::time_t Client::getConnectionTime() const {
+    return connectionTime;
+}
+
+bool Client::isDisconnected() const {
+    return disconnected;
+}
+
+/* SETTERS */
+void Client::setFd(int fd) {
+	this->fd = fd;
+}
+
+void Client::setNickname(const std::string& nick) {
+	nickname = nick;
+}
+
+void Client::setUsername(const std::string& username) {
+    this->username = username;
+}
+
+void Client::setHostname(const std::string& hostname) {
+	this->hostname = hostname;
+}
+
+void Client::setRealname(const std::string& realname) {
+    this->realname = realname;
+}
+
+void Client::setBuffer(const std::string& buffer) {
+    this->buffer = buffer;
+}
+
+void Client::setAutenticate(const bool autenticate) {
+    this->autenticate = autenticate;
+}
+
+void Client::setRegistred(const bool registred) {
+    this->registred = registred;
+}
+
+void Client::setConnectionTime(const std::time_t connectionTime) {
+	this->connectionTime = connectionTime;
+}
+
+void Client::setDisconnected(const bool disconnected) {
+    this->disconnected = disconnected;
+}
+
+/* TO STRING */
+std::string Client::fdToString()
+{
+	return "Client fd:" + Utils::intToString(fd);
+}
+
+void Client::toString() const {
+    std::ostringstream output;
+
+    // Header
+    output << BOLD << GREEN << "> Client Info (fd: " << fd << ")" << RESET << "\n";
+    output << CYAN << "Nickname: " << RESET << (nickname.empty() ? "(No nickname)" : nickname) << "\n";
+    output << CYAN << "Username: " << RESET << (username.empty() ? "(No username)" : username) << "\n";
+    output << CYAN << "Hostname: " << RESET << (hostname.empty() ? "(No hostname)" : hostname) << "\n";
+
+    // States
+    output << YELLOW << "Authenticated: " << RESET << (autenticate ? "Yes" : "No") << "\n";
+    output << YELLOW << "Registered: " << RESET << (registred ? "Yes" : "No") << "\n";
+
+    // Connectio time
+    char timeBuffer[64];
+    if (std::strftime(timeBuffer, sizeof(timeBuffer), "%Y-%m-%d %H:%M:%S", std::localtime(&connectionTime))) {
+        output << BLUE << "Connection Time: " << RESET << timeBuffer << "\n";
+    } else {
+        output << BLUE << "Connection Time: " << RESET << "(Unknown)\n";
+    }
+
+    // Channels
+    output << RED << "Channels (" << channels.size() << "):" << RESET << "\n";
+    for (std::vector<std::string>::const_iterator it = channels.begin(); it != channels.end(); ++it) {
+        output << "  - " << *it << "\n";
+    }
+
+    // Buffer
+    output << YELLOW << "Buffer: " << RESET << (buffer.empty() ? "(Empty)" : buffer) << "\n";
+
+    // Print all
+    std::cout << output.str();
 }

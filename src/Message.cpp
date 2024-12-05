@@ -8,14 +8,15 @@ void Message::sendToClient(int client_fd, const std::string& message) {
 
 // Sends a message to all members of a specific channel
 void Message::sendToChannel(const std::string& channel_name, const std::string& message,
-							const std::map<std::string, Channel>& channels, int exclude_fd) {
+							std::map<std::string, Channel>& channels, int exclude_fd) {
 	// Looks for the channel in the map
-	std::map<std::string, Channel>::const_iterator it = channels.find(channel_name);
+	std::map<std::string, Channel>::iterator it = channels.find(channel_name);
 	if (it == channels.end()) {
-		std::cerr << "Channel " << channel_name << " not found." << std::endl;
+        std::cerr << "Channel " << channel_name << " not found." << std::endl;
 		return;
 	}
-
+    
+    it->second.addHistoryMsg(message);
 	const std::map<int, Client*>& members = it->second.getMembers();
 	for (std::map<int, Client*>::const_iterator member_it = members.begin(); member_it != members.end(); ++member_it) {
 		int client_fd = member_it->first;
