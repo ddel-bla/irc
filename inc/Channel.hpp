@@ -43,6 +43,7 @@ class Channel {
         bool    isInviteOnly() const;
         size_t  getUserLimit() const;
 		const std::map<int, Client*>&   getMembers() const;
+        const std::map<int, Client*>&   getOperators() const;
 		const std::vector<std::string>& getHistory() const;
 
         /* SETTERS */

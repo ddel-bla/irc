@@ -72,6 +72,10 @@ const std::map<int, Client*>& Channel::getMembers() const {
     return members;
 }
 
+const std::map<int, Client*>& Channel::getOperators() const {
+    return operators;
+}
+
 const std::vector<std::string>& Channel::getHistory() const {
     return history;
 }

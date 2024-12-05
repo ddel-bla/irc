@@ -70,6 +70,12 @@ private:
 		bool	isChannelNameValid(const std::string& channelName);
 		void	showChannelHistory(const std::vector<std::string> history, int fd);
 
+		/* CHANNEL CMDS */
+		void	kick(const std::string& command, Client& client);
+		void	invite(const std::string& command, Client& client);
+		void	topic(const std::string& command, Client& client);
+		void	mode(const std::string& command, Client& client);
+
 public:
 		/* PARAMETRIZED CONSTRUCTOR*/
 		IRCServer(int port, const std::string& password);

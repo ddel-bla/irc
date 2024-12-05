@@ -280,6 +280,11 @@ void IRCServer::updateChannelsClientNickname(int fd, const std::string& newNickn
         if (memberIt != channel.getMembers().end()) {
             memberIt->second->setNickname(newNickname);
         }
+
+		std::map<int, Client*>::const_iterator operatorIt = channel.getOperators().find(fd);
+        if (operatorIt != channel.getOperators().end()) {
+            operatorIt->second->setNickname(newNickname);
+        }
     }
 }
 

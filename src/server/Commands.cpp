@@ -3,13 +3,11 @@
 /* MAIN METHOD */
 void IRCServer::process_command(std::string command, int fd)
 {
-	std::vector<std::string> split_command;
+	std::vector<std::string> split_command = Utils::splitBySpaces(command);;
 	Client	*cliente = clients[fd];
 
 	if (command.empty())
 		return ;
-	
-	split_command = Utils::splitBySpaces(command);
 
 	// EMPTY VECTOR
 	if (!split_command.size())
