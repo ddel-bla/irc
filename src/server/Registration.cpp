@@ -114,7 +114,7 @@ void	IRCServer::registerNickname(std::string command, Client& client)
 					if (!client.isRegistred()) // If already registered dont send
 						sendwelcomeMessage(client.getFd(), client.getNickname());
 					else
-						logger.info("[NICK] User " + nickname + " registered successfylly.");
+						logger.info("[NICK] User " + nickname + " registered successfully.");
 					client.setRegistred(true);
 					if (!oldNickname.empty())
 					{	
@@ -178,7 +178,7 @@ void	IRCServer::registerUsername(std::string command, Client& client)
 				if (!client.getNickname().empty())
 				{
 					client.setRegistred(true);
-					logger.info("[USER] User " + client.getUsername() + " registered successfylly.");
+					logger.info("[USER] User " + client.getUsername() + " registered successfully.");
 					sendwelcomeMessage(client.getFd(), client.getNickname());
 				}
 			}
