@@ -83,11 +83,18 @@ void IRCServer::privMsg(const std::string& command, Client& client)
 			else if (dest_nick.size() > 1 && dest_nick[0] == '#')
 			{
 				std::string realName = Utils::removeLeadingChar(dest_nick, '#');
+				std::map<std::string, Channel>::iterator channel = channels.find(realName);
 				if (!existsChannelByName(realName))		// does not exist
 				{
-					logger.warning("[PRIVMSG] Channel '" + realName + " not found.");
+					logger.warning("[PRIVMSG] :: Channel '" + realName + " not found.");
 					message.sendToClient(client.getFd(), ERR_CHANNELNOTFOUND(client.getNickname(), dest_nick));
 					continue;
+				}
+				else if (!channel->second.isMember(client.getFd()))
+				{
+					logger.warning("[PRIVMSG] :: Client : " + client.getNickname() + " is not in channel '" + realName + "'.");
+            		message.sendToClient(client.getFd(), ERR_NOSUCHNICK(client.getNickname()));
+            		continue ;
 				}
 				// 6. Send msg to channel
 				message.sendToChannel(realName, msg_text, channels, client.getFd());
