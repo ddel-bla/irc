@@ -37,6 +37,7 @@ class Client {
 		/* METHODS */
 		void 	clearBuffer(void);
 		void 	addChannel(const std::string& channel);
+		void	removeChannel(const std::string& channel);
 		size_t	getChannelCount() const;
 		void 	appendToBuffer(const char* data, size_t length);
 		

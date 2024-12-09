@@ -38,7 +38,6 @@ private:
 		
 		/* METHODS */
 		void acceptClient();
-		void processClient(int client_fd);
 		void removeClient(int client_fd);
 		void receiveData(int fd);
 		void process_command(std::string command, int fd);
@@ -59,6 +58,7 @@ private:
 		/* HEXCLIENT MSG FORMAT */
 		std::string	hx_generic_format(const std::string& command, Client& sender);
 		std::string	hx_join_format(const std::string& command, Client& sender, bool member_joined);
+		std::string	hx_quit_format(const std::string& channel, Client& sender, const std::string& kicked_user, std::string& reason);
 
 		/* PRIVMSG */
 		void	privMsg(const std::string& command, Client& clien);
@@ -71,7 +71,9 @@ private:
 		void	showChannelHistory(const std::vector<std::string> history, int fd);
 
 		/* CHANNEL CMDS */
-		void	kick(const std::string& command, Client& client);
+		void		kick(const std::string& command, Client& client);
+		std::string	getKickReason(const std::string& command, int command_len);
+
 		void	invite(const std::string& command, Client& client);
 		void	topic(const std::string& command, Client& client);
 		void	mode(const std::string& command, Client& client);

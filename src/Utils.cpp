@@ -58,20 +58,23 @@ std::string joinIntVector(const std::vector<int>& vec)
     return result;
 }
 
-std::string Utils::getMessageWithoutPrefix(const std::string& message)
+std::string Utils::getMessageWithoutPrefixes(const std::string& message, int num_words)
 {
     std::istringstream  ss(message);
     std::string         word;
     std::string         result;
 
     // SKIP FIRST TWO WORDS
-    ss >> word;
-    ss >> word;
+    for (int i = 0; i < num_words; ++i) {
+        if (!(ss >> word)) {
+            return "";
+        }
+    }
     
     std::getline(ss, result); 
 
     // DELETE LEADING ':'
-    if (!result.empty() && result[0] == ' ')
+    if (!result.empty() && result[0] == ':')
         result = result.substr(1);
 
     return result;

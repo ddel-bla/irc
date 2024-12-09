@@ -139,10 +139,10 @@ void Channel::toString() const {
     }
 
     // History
-    output << CYAN << "Message History (" << history.size() << " messages):" << RESET << "\n";
-    for (std::vector<std::string>::const_iterator it = history.begin(); it != history.end(); ++it) {
-        output << "  * " << *it << "\n";
-    }
+    // output << CYAN << "Message History (" << history.size() << " messages):" << RESET << "\n";
+    // for (std::vector<std::string>::const_iterator it = history.begin(); it != history.end(); ++it) {
+    //     output << "  * " << *it << "\n";
+    // }
 
     // Print all
     std::cout << output.str();

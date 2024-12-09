@@ -21,6 +21,14 @@ void Client::addChannel(const std::string& channel)
     }
 }
 
+void Client::removeChannel(const std::string& channel)
+{
+    std::vector<std::string>::iterator it = std::find(this->channels.begin(), this->channels.end(), channel);
+    if (it != this->channels.end()) {
+        this->channels.erase(it);
+    }
+}
+
 void Client::clearBuffer(void)
 {
     buffer.clear();

@@ -63,8 +63,8 @@
 #define ERR_UNKNOWNMODE(nick, channel, mode)	 	": 472 " + nick + " #" + channel + " " + mode + " :is not a recognised channel mode" + CRLF
 #define ERR_NEEDMOREPARAMS(nick)                    (": 461 " + nick + " :Not enough parameters." + CRLF)
 #define ERR_PASSWDMISMATCH(nick)                    (": 464 " + nick + " :Password incorrect !" + CRLF )
-#define ERR_CHANNELNOTFOUND(nick, channel) 			(": 403 " + nick + " " + channel + " :No such channel" + CRLF)
-#define ERR_NOTOPERATOR(channel) 					(": 482 " + channel + " :You're not a channel operator" + CRLF)
+#define ERR_NOSUCHCHANNEL(nick, channel) 			(": 403 " + nick + " #" + channel + " :No such channel" + CRLF)
+#define ERR_CHANOPRIVSNEEDED(nick, channel)         (": 482 " + nick + " #" + channel + " :You're not a channel operator" + CRLF)
 #define ERR_NOSUCHNICK(name) 				        (": 401 " + name + " :No such nick/channel" + CRLF )
 #define ERR_INCORPASS(nick) 						(": 464 " + nick + " :Password incorrect !" + CRLF )
 #define ERR_ALREADYREGISTERED(nick) 				(": 462 " + nick + " :You may not reregister !" + CRLF )
@@ -81,7 +81,9 @@
 #define ERR_TOOMANYCHANNELS(nick)                   (": 405 " + nick + " :You have joined too many channels!" + CRLF)
 #define ERR_USERTOOLONG(nick)                       (": 991 " + nick + " :Username too long! ( max length: " + Utils::intToString(USERLEN) + ")" + CRLF)
 #define ERR_NICKTOOLONG(nick)                       (": 992 " + nick + " :Nick too long! ( max length: " + Utils::intToString(NICKLEN) + " )" + CRLF)
-#define ERR_INVALIDCHANNAME(channel)                (": 993 " + channel + " :Invalid channel name! ('#', '&' not allowed, max length: " + Utils::intToString(CHANNELLEN) + " )" + CRLF)
+#define ERR_INVALIDCHANNAME(channel)                (": 993 #" + channel + " :Invalid channel name! ('#', '&' not allowed, max length: " + Utils::intToString(CHANNELLEN) + " )" + CRLF)
+#define ERR_NOTONCHANNEL(nick, channel)             (": 442 " + nick + " #" + channel + " :You're not on that channel" + CRLF)
+#define ERR_USERNOTINCHANNEL(nick, kicked, channel) (": 441 " + nick + " " + kicked + " #" + channel + " :They aren't on that channel" + CRLF)
 
 /* COLORS */
 #define RED		"\033[0;91m"

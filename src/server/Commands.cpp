@@ -31,7 +31,7 @@ void IRCServer::process_command(std::string command, int fd)
 		else if (split_command[0] == JOIN)
 			join(command, *cliente);
 		else if (split_command[0] == KICK)
-			std::cout << "KICK" << std::endl;
+			kick(command, *cliente);
 		else if (split_command[0] == INVITE)
 			std::cout << "INVITE" << std::endl;
 		else if (split_command[0] == TOPIC)
