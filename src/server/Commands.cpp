@@ -87,13 +87,13 @@ void IRCServer::privMsg(const std::string& command, Client& client)
 				if (!existsChannelByName(realName))		// does not exist
 				{
 					logger.warning("[PRIVMSG] :: Channel '" + realName + " not found.");
-					message.sendToClient(client.getFd(), ERR_CHANNELNOTFOUND(client.getNickname(), dest_nick));
+					message.sendToClient(client.getFd(), ERR_NOSUCHCHANNEL(client.getNickname(), dest_nick));
 					continue;
 				}
 				else if (!channel->second.isMember(client.getFd()))
 				{
 					logger.warning("[PRIVMSG] :: Client : " + client.getNickname() + " is not in channel '" + realName + "'.");
-            		message.sendToClient(client.getFd(), ERR_NOSUCHNICK(client.getNickname()));
+            		message.sendToClient(client.getFd(), ERR_NOTONCHANNEL(client.getNickname(), realName));
             		continue ;
 				}
 				// 6. Send msg to channel
