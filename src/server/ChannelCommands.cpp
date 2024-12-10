@@ -91,6 +91,6 @@ std::string IRCServer::getKickReason(const std::string& command, int command_len
     if (command_len > 3)
         reason = Utils::getMessageWithoutPrefixes(command, 3);
     else
-        reason = "You dont belong here! -.-";
+        reason = " You dont belong here! -.-";
     return (reason);
 }
