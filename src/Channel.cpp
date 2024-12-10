@@ -1,9 +1,9 @@
 #include "Channel.hpp"
 
 /* PARAMETRIZED CONSTRUCTOR */
-Channel::Channel(const std::string& name, const std::string& key): name(name), channelKey(key), inviteOnlyFlag(false), topicRestrictedToOps(false), userLimit(0) {}
+Channel::Channel(const std::string& name, const std::string& key): name(name), channelKey(key), inviteOnlyFlag(false), topicRestricted(false), userLimit(0) {}
 
-Channel::Channel(const std::string& name): name(name), inviteOnlyFlag(false), topicRestrictedToOps(false), userLimit(0) {}
+Channel::Channel(const std::string& name): name(name), inviteOnlyFlag(false), topicRestricted(false), userLimit(0) {}
 
 /* METHODS */
 void Channel::addMember(int client_fd, Client *client) {
@@ -69,8 +69,8 @@ const std::string& Channel::getTopic() const {
     return topic;
 }
 
-bool Channel::isTopicRestrictedToOps() const {
-    return topicRestrictedToOps;
+bool Channel::isTopicRestricted() const {
+    return topicRestricted;
 }
 
 bool Channel::isInviteOnly() const {
@@ -106,8 +106,8 @@ void Channel::setInviteOnly(bool value) {
     inviteOnlyFlag = value;
 }
 
-void Channel::setTopicRestrictedToOps(bool value) {
-    topicRestrictedToOps = value;
+void Channel::setTopicRestricted(bool value) {
+    topicRestricted = value;
 }
 
 void Channel::setUserLimit(size_t limit) {
@@ -122,7 +122,7 @@ void Channel::toString() const {
     output << BOLD << GREEN << "> Channel: " << name << RESET << "\n";
     output << CYAN << "Topic: " << RESET << (topic.empty() ? "(No topic set)" : topic) << "\n";
     output << YELLOW << "Invite Only: " << RESET << (inviteOnlyFlag ? "Yes" : "No") << "\n";
-    output << YELLOW << "Topic Restricted to Ops: " << RESET << (topicRestrictedToOps ? "Yes" : "No") << "\n";
+    output << YELLOW << "Topic Restricted to Ops: " << RESET << (topicRestricted ? "Yes" : "No") << "\n";
     output << YELLOW << "User Limit: " << RESET << (userLimit == 0 ? "Unlimited" : Utils::intToString(userLimit)) << "\n";
     output << RED << "Channel Key: " << RESET << (channelKey.empty() ? "(No key set)" : channelKey) << "\n";
 

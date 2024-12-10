@@ -35,7 +35,7 @@ void IRCServer::process_command(std::string command, int fd)
 		else if (split_command[0] == INVITE)
 			invite(command, *cliente);
 		else if (split_command[0] == TOPIC)
-			std::cout << "TOPIC" << std::endl;
+			topic(command, *cliente);
 		else if (split_command[0] == MODE)
 			std::cout << "MODE" << std::endl;
 	}

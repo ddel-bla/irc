@@ -16,7 +16,7 @@ class Channel {
         std::map<int, Client*>      invited;                // Channel invited (key: client_fd)
         std::string                 topic;                  // Channel topic
         bool                        inviteOnlyFlag;         // Changed from 'isInviteOnly' to 'inviteOnlyFlag'
-        bool                        topicRestrictedToOps;   // Indicates if only operators can change the topic
+        bool                        topicRestricted;        // Indicates if only operators can change the topic
         size_t                      userLimit;              // Changed from 'int' to 'size_t'
         std::vector<std::string>	history;	            // Message history
         
@@ -43,7 +43,7 @@ class Channel {
 		const std::string&  getName() const;
 		const std::string&  getChannelKey() const;
         const std::string&  getTopic() const;
-        bool    isTopicRestrictedToOps() const;
+        bool    isTopicRestricted() const;
         bool    isInviteOnly() const;
         size_t  getUserLimit() const;
 		const std::map<int, Client*>&   getMembers() const;
@@ -54,7 +54,7 @@ class Channel {
         void    setChannelKey(const std::string& key);
         void    setTopic(const std::string& topic);
         void    setInviteOnly(bool value);
-        void    setTopicRestrictedToOps(bool value);
+        void    setTopicRestricted(bool value);
         void    setUserLimit(size_t limit);
 
         /* TO STRING */

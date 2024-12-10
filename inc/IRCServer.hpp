@@ -75,7 +75,9 @@ private:
 		std::string	getKickReason(const std::string& command, int command_len);
 
 		void	invite(const std::string& command, Client& client);
+
 		void	topic(const std::string& command, Client& client);
+		
 		void	mode(const std::string& command, Client& client);
 
 public:

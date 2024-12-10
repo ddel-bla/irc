@@ -165,3 +165,83 @@ void    IRCServer::invite(const std::string& command, Client& client)
 		message.sendToClient(client.getFd(), ERR_TOOMANYPARAMS(client.getNickname(), command)); 
     } 
 }
+
+void    IRCServer::topic(const std::string& command, Client& client)
+{
+    logger.info("[TOPIC]:: User " + client.getNickname() + " changing topic...");
+
+    // 1. Splitting cmd
+    std::vector<std::string> split_command = Utils::splitBySpaces(command);
+    int command_len = split_command.size();
+
+    if (command_len >= 2)
+    {   
+        // 2. Extract user and channel
+        std::string channelName = Utils::removeLeadingChar(split_command[1], '#');
+        std::string topic;
+        if (command_len >= 3)
+            topic = Utils::getMessageWithoutPrefixes(command, 2);
+            
+        // 3. Channel not exists
+        std::map<std::string, Channel>::iterator ch = channels.find(channelName);
+        if (ch == channels.end())
+        {
+            logger.warning("[TOPIC] :: Channel does not exist : " + channelName + ".");
+            message.sendToClient(client.getFd(), ERR_NOSUCHCHANNEL(client.getNickname(), channelName));
+            return ;
+        }
+
+        // 4. User is not on channel
+        if (!ch->second.isMember(client.getFd()))
+        {
+            logger.warning("[TOPIC] :: Client : " + client.getNickname() + " is not in channel '" + channelName + "'.");
+            message.sendToClient(client.getFd(), ERR_NOTONCHANNEL(client.getNickname(), channelName));
+            return ;   
+        }
+
+        // 5. User has no privileges if protected-topic enabled
+        if (ch->second.isTopicRestricted() && !ch->second.isOperator(client.getFd()))
+        {
+            logger.warning("[TOPIC] :: Client : " + client.getNickname() + " is not a channel operator in '" + channelName + "'.");
+            message.sendToClient(client.getFd(), ERR_CHANOPRIVSNEEDED(client.getNickname(), channelName));
+            return ;
+        }
+        
+        // 6. No topic
+        if (command_len == 2)
+        {
+            if (ch->second.getTopic().empty())
+            {
+                logger.info("[TOPIC] :: There is no topic to display.");
+                message.sendToClient(client.getFd(), RPL_NOTOPIC(client.getNickname(), channelName));
+                return ;
+            }
+            else
+            {
+                logger.info("[TOPIC] :: The topic of '" + ch->second.getName() + "' is: " + ch->second.getTopic() + ".");
+                message.sendToClient(client.getFd(), RPL_TOPIC(client.getNickname(), channelName, ch->second.getTopic()));
+                return ;
+            }
+        }
+        // 7. Set topic
+        if (!topic.empty())
+        {
+            ch->second.setTopic(topic);
+            logger.info("[TOPIC] :: The topic of '" + ch->second.getName() + "' is: " + ch->second.getTopic() + ".");
+            message.sendToChannel(channelName, RPL_TOPIC(client.getNickname(), channelName, ch->second.getTopic()), channels);
+        }
+        else
+        {
+            ch->second.setTopic("");
+            logger.info("[TOPIC] :: There is no topic to display.");
+            message.sendToChannel(channelName, RPL_NOTOPIC(client.getNickname(), channelName), channels);
+        }
+    }
+    else if (command_len < 2)   // NOT ENOGH PARAMS
+    {
+        logger.warning("[TOPIC] " + client.getNickname() + " --> Not enough params.");
+        std::string channelName = Utils::removeLeadingChar(split_command[1], '#');
+		
+        message.sendToClient(client.getFd(), ERR_NEEDMOREPARAMS(client.getNickname()));
+    }
+}

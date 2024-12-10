@@ -71,7 +71,13 @@ std::string Utils::getMessageWithoutPrefixes(const std::string& message, int num
         }
     }
     
-    std::getline(ss, result); 
+    std::getline(ss, result);
+     
+    // LEADING SPACES
+    size_t first_non_space = result.find_first_not_of(" ");
+    if (first_non_space != std::string::npos) {
+        result = result.substr(first_non_space);
+    }
 
     // DELETE LEADING ':'
     if (!result.empty() && result[0] == ':')

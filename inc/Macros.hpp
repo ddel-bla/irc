@@ -57,6 +57,8 @@
 #define RPL_TOPICIS(nick, channel, topic) 			(": 332 " + nick + " #" +channel + " :" + topic + CRLF)
 #define RPL_CHANGEDNICK(nick)						(": 990 " + nick + " : Nickname changed!" + CRLF)
 #define RPL_INVITING(nick, invited, channel)        (": 341 " + nick + " " + invited + " #" + channel + CRLF)
+#define RPL_NOTOPIC(nick, channel)                  (": 331 " + nick + " #" + channel + " :No topic is set" + CRLF)
+#define RPL_TOPIC(nick, channel, topic)             (": 332 " + nick + " #" + channel + " :" + topic + CRLF)
 
 /* SYSTEM ERRORS */
 #define ERR_NEEDMODEPARM(channel, mode) 			(": 696 #" + channel + " * You must specify a parameter for the key mode. " + mode + CRLF)
