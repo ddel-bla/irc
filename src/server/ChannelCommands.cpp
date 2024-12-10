@@ -94,3 +94,74 @@ std::string IRCServer::getKickReason(const std::string& command, int command_len
         reason = " You dont belong here! -.-";
     return (reason);
 }
+
+void    IRCServer::invite(const std::string& command, Client& client)
+{
+    logger.info("[INVITE]:: User " + client.getNickname() + " is inviting...");
+
+    // 1. Splitting cmd
+    std::vector<std::string> split_command = Utils::splitBySpaces(command);
+    int command_len = split_command.size();
+
+    if (command_len == 3)
+    {
+        // 2. Extract user and channel
+        std::string user = split_command[1];
+        std::string channelName = Utils::removeLeadingChar(split_command[2], '#');
+        
+        // 3. Channel not exists
+        std::map<std::string, Channel>::iterator ch = channels.find(channelName);
+        if (ch == channels.end())
+        {
+            logger.warning("[INVITE] :: Channel does not exist : " + channelName + ".");
+            message.sendToClient(client.getFd(), ERR_NOSUCHCHANNEL(client.getNickname(), channelName));
+            return ;
+        }
+
+        // 4. Channel not intive-only mode
+        if (!ch->second.isInviteOnly())
+        {
+            logger.warning("[INVITE] :: Channel : " + channelName + " has not invite-only mode.");
+            message.sendToClient(client.getFd(), ERR_NOSUCHCHANNEL(client.getNickname(), channelName));
+            return ;
+        }
+
+        // 5. User has no privileges
+        if (!ch->second.isMember(client.getFd()))
+        {
+            logger.warning("[INVITE] :: Client : " + client.getNickname() + " is not in channel '" + channelName + "'.");
+            message.sendToClient(client.getFd(), ERR_NOTONCHANNEL(client.getNickname(), channelName));
+            return ;   
+        }
+
+        // 6. Is invited user already on channel ?
+        int invited_fd = findFdByNickname(user);
+        std::map<int, Client*>::iterator invited_user = clients.find(invited_fd);
+        if (ch->second.isMember(invited_fd))
+        {
+            logger.warning("[INVITE] :: Client : " + client.getNickname() + " is already in channel '" + channelName + "'.");
+            message.sendToClient(client.getFd(), ERR_USERONCHANNEL(client.getNickname(), user, channelName));
+            return ;
+        }
+
+        // 7. Add user to inviting list
+        ch->second.addInvited(invited_fd, invited_user->second);
+
+        // 8. Send client text (hxc)D
+        std::string msg_text = hx_generic_format(command, client);
+        message.sendToClient(invited_fd, msg_text);
+
+        // 9. Invited message
+        message.sendToClient(client.getFd(), RPL_INVITING(client.getNickname(), invited_user->second->getNickname(), channelName));
+    }
+    else if (command_len > 3)   // NOT ENOGH PARAMS
+    {
+        logger.warning("[INVITE] " + client.getNickname() + " --> Not enough params.");
+		message.sendToClient(client.getFd(), ERR_NEEDMOREPARAMS(client.getNickname()));
+    }
+    else                        // TOO MANY PARAMS
+    {
+       logger.warning("[INVITE] " + client.getNickname() + " --> Too many params.");
+		message.sendToClient(client.getFd(), ERR_TOOMANYPARAMS(client.getNickname(), command)); 
+    } 
+}

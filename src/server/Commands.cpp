@@ -33,7 +33,7 @@ void IRCServer::process_command(std::string command, int fd)
 		else if (split_command[0] == KICK)
 			kick(command, *cliente);
 		else if (split_command[0] == INVITE)
-			std::cout << "INVITE" << std::endl;
+			invite(command, *cliente);
 		else if (split_command[0] == TOPIC)
 			std::cout << "TOPIC" << std::endl;
 		else if (split_command[0] == MODE)
@@ -187,10 +187,10 @@ void	IRCServer::join(const std::string& command, Client& client)
 			logger.info("[JOIN] :: HC Message: " + msg_text);
 
     		// 6. Search in existing channels
-    		std::map<std::string, Channel>::iterator it = channels.find(channelName);
+    		std::map<std::string, Channel>::iterator ch = channels.find(channelName);
 			
 			// 7. Channel does not exist
-			if (it == channels.end())
+			if (ch == channels.end())
 			{ 
 				client.toString();
 				if (!isChannelNameValid(channelName)) // Valid channel name
@@ -213,16 +213,24 @@ void	IRCServer::join(const std::string& command, Client& client)
 					channels.insert(std::make_pair(channelName, Channel(channelName)));
 
 				// 8. User becomes operator
-				it = channels.find(channelName);
-				it->second.addOperator(client.getFd(), &client);				
+				ch = channels.find(channelName);
+				ch->second.addOperator(client.getFd(), &client);				
     		} 
 			// 7. Channel does exist
 			else
 			{
 				// 8. Wrong key entered
-				if (!it->second.getChannelKey().empty() && (channelKey.empty() || it->second.getChannelKey() != channelKey)) {
-					logger.info("[JOIN] :: Wrong channel key : " + channelName + ". Entered key: " + channelKey + ", Actual key: " + it->second.getChannelKey());
-					message.sendToClient(client.getFd(), ERR_BADCHANNELKEY(client.getNickname(), it->second.getName()));
+				if (!ch->second.getChannelKey().empty() && (channelKey.empty() || ch->second.getChannelKey() != channelKey)) {
+					logger.info("[JOIN] :: Wrong channel key : " + channelName + ". Entered key: " + channelKey + ", Actual key: " + ch->second.getChannelKey());
+					message.sendToClient(client.getFd(), ERR_BADCHANNELKEY(client.getNickname(), ch->second.getName()));
+					continue; // Skip to the next channel
+				}
+
+				// 9. Invite-only channel
+				if (ch->second.isInviteOnly() && !(ch->second.isInvited(client.getFd()) || ch->second.isOperator(client.getFd())))
+				{
+					logger.info("[JOIN] :: Client : " + client.getNickname() + " hasn't been invited to: " + channelName + ".");
+					message.sendToClient(client.getFd(), ERR_INVITEONLYCHAN(client.getNickname(), ch->second.getName()));
 					continue; // Skip to the next channel
 				}
     		}
@@ -230,7 +238,7 @@ void	IRCServer::join(const std::string& command, Client& client)
 			message.sendToChannel(channelName, RPL_JOINMSG(client.getNickname(), client.getHostname(), cmd_channels[0]), channels);
 
 			// 9. Send hexchat client msg
-			if (!it->second.isMember(client.getFd()))
+			if (!ch->second.isMember(client.getFd()))
 			{
 				message.sendToClient(client.getFd(), msg_text);
 				msg_text = hx_join_format(channelName, client, true);
@@ -243,7 +251,8 @@ void	IRCServer::join(const std::string& command, Client& client)
 
 			// 12. Add clients to client's channel and channel's members
     		client.addChannel(channelName);
-    		it->second.addMember(client.getFd(), &client);
+    		ch->second.addMember(client.getFd(), &client);
+			ch->second.toString();
 		}
 	}
 	else	// NEED MORE PARAMS

@@ -40,7 +40,7 @@ void Channel::removeInvited(int client_fd) {
 }
 
 bool Channel::isInvited(int client_fd) const {
-    return invited.find(client_fd) != operators.end();
+    return invited.find(client_fd) != invited.end();
 }
 
 void Channel::removeChannelKey() {
@@ -137,7 +137,13 @@ void Channel::toString() const {
     for (std::map<int, Client*>::const_iterator it = operators.begin(); it != operators.end(); ++it) {
         output << "  - " << it->second->getNickname() << " (fd: " << it->first << ")\n";
     }
-
+    
+    // Invited
+    output << BLUE << "Invited (" << invited.size() << "):" << RESET << "\n";
+    for (std::map<int, Client*>::const_iterator it = invited.begin(); it != invited.end(); ++it) {
+        output << "  - " << it->second->getNickname() << " (fd: " << it->first << ")\n";
+    }
+    
     // History
     // output << CYAN << "Message History (" << history.size() << " messages):" << RESET << "\n";
     // for (std::vector<std::string>::const_iterator it = history.begin(); it != history.end(); ++it) {

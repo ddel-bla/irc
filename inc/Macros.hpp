@@ -29,6 +29,7 @@
 #define TARGMAX     "PRIVMSG:4,JOIN:4"  // Maximun number of targets allowed
 #define TOPICLEN    100                 // Maximun length of a topic
 #define USERLEN     12                  // Maximun length of a username
+#define INVEX       "I"                 // Server supports invite exceptions
 
 /* CHARACTERS*/
 #define CRLF "\r\n"
@@ -55,6 +56,7 @@
 #define RPL_ENDOFNAMES(nick, channel) 				(": 366 " + nick + " #" + channel + " :END of /NAMES list" + CRLF)
 #define RPL_TOPICIS(nick, channel, topic) 			(": 332 " + nick + " #" +channel + " :" + topic + CRLF)
 #define RPL_CHANGEDNICK(nick)						(": 990 " + nick + " : Nickname changed!" + CRLF)
+#define RPL_INVITING(nick, invited, channel)        (": 341 " + nick + " " + invited + " #" + channel + CRLF)
 
 /* SYSTEM ERRORS */
 #define ERR_NEEDMODEPARM(channel, mode) 			(": 696 #" + channel + " * You must specify a parameter for the key mode. " + mode + CRLF)
@@ -84,6 +86,9 @@
 #define ERR_INVALIDCHANNAME(channel)                (": 993 #" + channel + " :Invalid channel name! ('#', '&' not allowed, max length: " + Utils::intToString(CHANNELLEN) + " )" + CRLF)
 #define ERR_NOTONCHANNEL(nick, channel)             (": 442 " + nick + " #" + channel + " :You're not on that channel" + CRLF)
 #define ERR_USERNOTINCHANNEL(nick, kicked, channel) (": 441 " + nick + " " + kicked + " #" + channel + " :They aren't on that channel" + CRLF)
+#define ERR_INVITEONLYCHAN(nick, channel)           (": 473 " + nick + " #" + channel + " :Cannot join channel (+i)" + CRLF)
+#define ERR_TOOMANYPARAMS(nick, command)            (": 989 " + nick + " '" + command + "' :Too many parameters" + CRLF)
+#define ERR_USERONCHANNEL(nick, invited, channel)   (": 443 " + nick + " " + invited + " #" + channel + " :is already on channel" + CRLF)
 
 /* COLORS */
 #define RED		"\033[0;91m"

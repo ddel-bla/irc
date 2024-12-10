@@ -216,7 +216,8 @@ void IRCServer::sendwelcomeMessage(int fd, const std::string& nickname)
     msg += "  NICKLEN=" + Utils::intToString(NICKLEN) + " (Max length of a nickname)\n";
     msg += "  TARGMAX=" + std::string(TARGMAX) + " (Max number of targets allowed for commands)\n";
     msg += "  TOPICLEN=" + Utils::intToString(TOPICLEN) + " (Max length of a topic)\n";
-    msg += "  USERLEN=" + Utils::intToString(USERLEN) + " (Max length of a username)\n" + CRLF;
+    msg += "  USERLEN=" + Utils::intToString(USERLEN) + " (Max length of a username)\n";
+	msg += "  INVEX=" + std::string(INVEX) + " (Server supports invite exceptions)\n" + CRLF;
     message.sendToClient(fd, msg);
 }
 
