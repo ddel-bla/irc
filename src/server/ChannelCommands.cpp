@@ -245,3 +245,152 @@ void    IRCServer::topic(const std::string& command, Client& client)
         message.sendToClient(client.getFd(), ERR_NEEDMOREPARAMS(client.getNickname()));
     }
 }
+
+void    IRCServer::mode(const std::string& command, Client& client)
+{
+    logger.info("[MODE]:: User " + client.getNickname() + " is changing mode...");
+
+    // 1. Splitting cmd
+    std::vector<std::string> split_command = Utils::splitBySpaces(command);
+    int command_len = split_command.size();
+
+    if (command_len >= 2)
+    {
+        // 2. Extract user and channel
+        std::string channelName = Utils::removeLeadingChar(split_command[1], '#');
+        std::string modes;                  // Chanel modes (+i)
+        std::vector<std::string> params;    // Mode params 
+        
+        if (command_len >= 3)
+        {
+            modes = split_command[2];
+            params = Utils::splitBySpaces(Utils::getMessageWithoutPrefixes(command, 3));
+        }
+        
+        // 3. Channel not exists
+        std::map<std::string, Channel>::iterator ch = channels.find(channelName);
+        if (ch == channels.end())
+        {
+            logger.warning("[MODE] :: Channel does not exist : " + channelName + ".");
+            message.sendToClient(client.getFd(), ERR_NOSUCHCHANNEL(client.getNickname(), channelName));
+            return ;
+        }
+
+        // 4. No modes given
+        if (command_len == 2)
+        {
+            logger.warning("[MODE] :: No modes were giving (displaying channel '" + channelName + "' modes).");
+            sendRplISupport(client.getFd(), client.getNickname());
+            return ;
+        }
+        
+        // 4. User is not on channel
+        if (!ch->second.isMember(client.getFd()))
+        {
+            logger.warning("[MODE] :: Client : " + client.getNickname() + " is not in channel '" + channelName + "'.");
+            message.sendToClient(client.getFd(), ERR_NOTONCHANNEL(client.getNickname(), channelName));
+            return ;   
+        }
+
+        // 5. User has no privileges if protected-topic enabled
+        if (!ch->second.isOperator(client.getFd()))
+        {
+            logger.warning("[MODE] :: Client : " + client.getNickname() + " is not a channel operator in '" + channelName + "'.");
+            message.sendToClient(client.getFd(), ERR_CHANOPRIVSNEEDED(client.getNickname(), channelName));
+            return ;
+        }
+
+        // 7. Set modes
+        setModes(ch->second, modes, params, client);
+    }
+    else if (command_len < 2)   // NOT ENOGH PARAMS
+    {
+        logger.warning("[MODE] " + client.getNickname() + " --> Not enough params.");
+		message.sendToClient(client.getFd(), ERR_NEEDMOREPARAMS(client.getNickname()));
+    }
+}
+
+void IRCServer::setModes(Channel& ch, std::string& modes, std::vector<std::string> params, Client& sender)
+{
+    size_t paramIndex = 0;
+    bool addMode = true;
+
+    for (size_t i = 0; i < modes.length(); ++i) {
+        char modeChar = modes[i];
+
+        // 1. Add mode
+        if (modeChar == '+')
+            addMode = true;
+        // 2. Remove mode
+        else if (modeChar == '-')
+            addMode = false;
+        else {
+            
+            // 3. Process each mode
+            std::string param;
+            if ((modeChar == 'k' || modeChar == 'l' || modeChar == 'o') && paramIndex < params.size()) {
+                param = params[paramIndex++]; // Get next param if necessary
+            }
+
+            switch (modeChar) {
+                case 'i': // Invite-only
+                    ch.iMode(addMode);
+                    break;
+
+                case 't': // Topic restriction
+                    ch.tMode(addMode);
+                    break;
+
+                case 'k': // Channel key
+                    if (!ch.kMode(param, addMode))
+                    {
+                        logger.warning("[MODE] Invalid key '" + param + "'.");
+                        message.sendToClient(sender.getFd(), ERR_INVALIDKEY(sender.getNickname(), ch.getName()));
+                        continue;
+                    }
+                    break;
+
+                case 'l': // User limit
+                    if (!ch.lMode(param, addMode))
+                    {
+                        logger.warning("[MODE] Invalid limit '" + param + "'.");
+                        message.sendToClient(sender.getFd(), ERR_INVALIDLIMIT(sender.getNickname(), ch.getName()));
+                        continue;
+                    }
+                    break;
+
+                case 'o': // Operator privilege
+                {
+                    int fd = findFdByNickname(param);
+                    std::map<int, Client*>::iterator user = clients.find(fd);
+                    if (user == clients.end())
+                    {
+                        logger.warning("[MODE] :: Client : " + param + " does not exist.");
+                        message.sendToClient(sender.getFd(), ERR_NOSUCHNICK(param));
+                        continue;
+                    }
+                    else if (!ch.isMember(user->second->getFd()))
+                    {
+                        logger.warning("[MODE] :: Client : " + user->second->getNickname() + " is not in channel '" + ch.getName() + "'.");
+                        message.sendToClient(sender.getFd(), ERR_USERNOTINCHANNEL(sender.getNickname(), user->second->getNickname(), ch.getName()));
+                        continue;
+                    }
+                    else if (!ch.oMode(user->second, addMode))
+                    {
+                        logger.warning("[MODE] :: Client : " + user->second->getNickname() + " is not an operator '" + ch.getName() + "'.");
+                        message.sendToClient(sender.getFd(), ERR_NOTANOPERATOR(sender.getNickname(), ch.getName()));
+                        continue;
+                    }
+                    break;
+                }
+                default:
+                    logger.warning("[MODE] Invalid mode '" + std::string(1, modeChar) + "'.");
+                    message.sendToClient(sender.getFd(), ERR_INVALIDMODEPARAM(sender.getNickname(), ch.getName(), modeChar));
+                    continue;
+            }
+            std::string msg_text = hx_mode_format(ch.getName(), sender, addMode, modeChar, param);
+            logger.info("[MODE] :: HC member mode message: " + msg_text);
+            message.sendToChannel(ch.getName(), msg_text, channels);
+        }   
+    }
+}

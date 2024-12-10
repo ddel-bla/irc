@@ -74,3 +74,40 @@ std::string	IRCServer::hx_quit_format(const std::string& channel_name, Client& s
 
 	return (message);
 }
+
+/* MODE CMD */
+std::string IRCServer::hx_mode_format(const std::string& channelName, Client& sender, bool addMode, char modeChar, std::string& param)
+{
+	//"@time=2024-12-04T17:10:52.472Z :webo!~A@89.131.139.38 JOIN #dos * :realname\r\n";
+	std::string message;
+	std::string command = "+i";
+
+	// TIME
+	message = "@time=" + Utils::getCurrentTimeISO8601();
+
+	// NICK SENDER
+	message += " :" + sender.getNickname() + "!";
+
+	// USER SENDER
+	message += "~" + sender.getUsername() + "@" + sender.getHostname() + " ";
+
+	// COMMAND
+	message += "MODE #" + channelName + " ";
+
+	std::string result;
+
+	// '+' or '-'
+	result += (addMode ? '+' : '-');
+
+	// Actual mode (modeChar)
+	result += modeChar;
+
+	// Add param
+	if (!param.empty())
+		result += " " + param;
+	
+	// merge
+	message += result  + CRLF;
+
+	return (message);
+}

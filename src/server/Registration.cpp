@@ -203,6 +203,11 @@ void IRCServer::sendwelcomeMessage(int fd, const std::string& nickname)
 	message.sendToClient(fd, RPL_YOURHOST(nickname));
 	message.sendToClient(fd, RPL_CREATE(nickname, this->creationDate));
 	message.sendToClient(fd, RPL_MYINFO(nickname));
+	sendRplISupport(fd, nickname);
+}
+
+void	IRCServer::sendRplISupport(int fd, const std::string& nickname)
+{
 	message.sendToClient(fd, RPL_ISUPPORT(nickname));
 
     std::string msg = "  RPL_ISUPPORT Parameters for " + nickname + ":\n";

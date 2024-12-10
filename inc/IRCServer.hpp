@@ -54,11 +54,13 @@ private:
 		bool	isNicknameTaken(const std::string nickname);
 		void	updateChannelsClientNickname(int fd, const std::string& newNickname);
 		void	sendwelcomeMessage(int fd, const std::string& nickname);
+		void	sendRplISupport(int fd, const std::string& nickname);
 
 		/* HEXCLIENT MSG FORMAT */
 		std::string	hx_generic_format(const std::string& command, Client& sender);
 		std::string	hx_join_format(const std::string& command, Client& sender, bool member_joined);
 		std::string	hx_quit_format(const std::string& channel, Client& sender, const std::string& kicked_user, std::string& reason);
+		std::string hx_mode_format(const std::string& channel, Client& sender, bool addMode, char modeChar, std::string& param);
 
 		/* PRIVMSG */
 		void	privMsg(const std::string& command, Client& clien);
@@ -79,6 +81,7 @@ private:
 		void	topic(const std::string& command, Client& client);
 		
 		void	mode(const std::string& command, Client& client);
+		void	setModes(Channel& channel, std::string& modes, std::vector<std::string> params, Client& sender);
 
 public:
 		/* PARAMETRIZED CONSTRUCTOR*/

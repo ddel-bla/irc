@@ -48,7 +48,7 @@
 #define RPL_ISUPPORT(nick)                          (": 005 " + nick + " : 11 tokens :are supported by this server" + CRLF)
 #define RPL_UMODEIS(host, channel, mode, user)  	":" + host + " MODE " + channel + " " + mode + " " + user + CRLF
 #define RPL_CREATIONTIME(nick, channel, time) 		": 329 " + nick + " #" + channel + " " + time + CRLF
-#define RPL_CHANNELMODES(nick, channel, modes) 		": 324 " + nick + " #" + channel + " " + modes + CRLF
+#define RPL_CHANNELMODEIS(nick, channel, modes)     (": 324 " + nick + " #" + channel + " " + modes + CRLF)
 #define RPL_CHANGEMODE(host, channel, mode, args) 	(":" + host + " MODE #" + channel + " " + mode + " " + args + CRLF)
 #define RPL_clientNickCHANGE(oldnick, nick) 		(":" + oldnick + " NICK " + nick + CRLF)
 #define RPL_JOINMSG(host, ipaddress, channel) 		(":" + host + "@" + ipaddress + " JOIN #" + channel + CRLF)
@@ -91,6 +91,11 @@
 #define ERR_INVITEONLYCHAN(nick, channel)           (": 473 " + nick + " #" + channel + " :Cannot join channel (+i)" + CRLF)
 #define ERR_TOOMANYPARAMS(nick, command)            (": 989 " + nick + " '" + command + "' :Too many parameters" + CRLF)
 #define ERR_USERONCHANNEL(nick, invited, channel)   (": 443 " + nick + " " + invited + " #" + channel + " :is already on channel" + CRLF)
+#define ERR_INVALIDKEY(nick, channel)               (": 525 " + nick + " #" + channel + " :Key is not well-formed" + CRLF)
+#define ERR_INVALIDMODEPARAM(nick, channel, cmd)    (": 696 " + nick + " #" + channel + " " + cmd + " :Not a valid mode" + CRLF)
+#define ERR_INVALIDLIMIT(nick, channel)             (": 525 " + nick + " #" + channel + " :Limit is not valid" + CRLF)
+#define ERR_NOTANOPERATOR(nick, channel)            (": 525 " + nick + " #" + channel + " :Can't remove not an operator" + CRLF)
+#define ERR_CHANNELISFULL(nick, channel)            (": 471 " + nick + " #" + channel + " :Cannot join channel (+l)" + CRLF)
 
 /* COLORS */
 #define RED		"\033[0;91m"

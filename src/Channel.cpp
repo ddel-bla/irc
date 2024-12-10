@@ -6,6 +6,62 @@ Channel::Channel(const std::string& name, const std::string& key): name(name), c
 Channel::Channel(const std::string& name): name(name), inviteOnlyFlag(false), topicRestricted(false), userLimit(0) {}
 
 /* METHODS */
+void Channel::iMode(bool addMode)
+{
+    inviteOnlyFlag = addMode;
+}
+
+void Channel::tMode(bool addMode)
+{
+    topicRestricted = addMode;
+}
+
+bool Channel::oMode(Client *client, bool addMode)
+{
+    // Is operator to remove
+    if (isOperator(client->getFd()) && !addMode)
+    {
+        removeOperator(client->getFd());
+        return true;
+    }
+    else if (addMode)
+    {
+        addOperator(client->getFd(), client);
+        return true;
+    }
+
+    return false;
+}
+
+bool Channel::kMode(std::string& key, bool addMode)
+{   
+    if (addMode && key.empty())
+        return false;
+    if (addMode)
+        channelKey = key; // Set key
+    else
+        channelKey.clear(); // Remove key
+    return true;
+}
+
+bool Channel::lMode(std::string& param, bool addMode)
+{
+    if (addMode) {
+        for (size_t j = 0; j < param.length(); ++j) {
+            if (!std::isdigit(param[j])) {
+                return false;
+            }
+        }
+
+        size_t limit = std::atoi(param.c_str());
+        userLimit = limit;
+    } else {
+        userLimit = 0;
+    }
+
+    return true;
+}
+
 void Channel::addMember(int client_fd, Client *client) {
     members[client_fd] = client;
 }
@@ -54,6 +110,11 @@ bool Channel::isUserLimitReached() const {
 void Channel::addHistoryMsg(const std::string& msg)
 {
     history.push_back(msg);
+}
+
+size_t Channel::countMembers() const
+{
+    return members.size();
 }
 
 /* GETTERS */

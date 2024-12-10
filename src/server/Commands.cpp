@@ -37,7 +37,7 @@ void IRCServer::process_command(std::string command, int fd)
 		else if (split_command[0] == TOPIC)
 			topic(command, *cliente);
 		else if (split_command[0] == MODE)
-			std::cout << "MODE" << std::endl;
+			mode(command, *cliente);
 	}
 	else if (!cliente->isRegistred())
 		std::cout << cliente->isRegistred() << ERR_NOTREGISTERED(cliente->getNickname()) << std::endl;
@@ -231,6 +231,14 @@ void	IRCServer::join(const std::string& command, Client& client)
 				{
 					logger.info("[JOIN] :: Client : " + client.getNickname() + " hasn't been invited to: " + channelName + ".");
 					message.sendToClient(client.getFd(), ERR_INVITEONLYCHAN(client.getNickname(), ch->second.getName()));
+					continue; // Skip to the next channel
+				}
+
+				// 10. Too many members
+				if (ch->second.countMembers() >= ch->second.getUserLimit() && ch->second.getUserLimit() != 0)
+				{
+					logger.info("[JOIN] :: Channel : " + channelName + " is full (" + Utils::intToString(ch->second.countMembers()) + ")");
+					message.sendToClient(client.getFd(), ERR_CHANNELISFULL(client.getNickname(), ch->second.getName()));
 					continue; // Skip to the next channel
 				}
     		}

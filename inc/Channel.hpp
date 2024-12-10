@@ -26,6 +26,11 @@ class Channel {
         Channel(const std::string& name);
 
         /* METHODS */
+        void    iMode(bool addMode);
+        void    tMode(bool addMode);
+        bool    oMode(Client *client, bool addMode);
+        bool    kMode(std::string& key, bool addMode);
+        bool    lMode(std::string& limit, bool addMode);
 		void    addMember(int client_fd, Client* client);
 		void    removeMember(int client_fd);
 		bool    isMember(int client_fd) const;
@@ -38,6 +43,7 @@ class Channel {
         void    addInvited(int client_fd, Client* client);
         void    removeInvited(int client_fd);
         bool    isInvited(int client_fd) const;
+        size_t  countMembers() const;
 
 		/* GETTERS */
 		const std::string&  getName() const;
