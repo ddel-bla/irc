@@ -40,7 +40,10 @@ void IRCServer::process_command(std::string command, int fd)
 			mode(command, *cliente);
 	}
 	else if (!cliente->isRegistred())
-		std::cout << cliente->isRegistred() << ERR_NOTREGISTERED(cliente->getNickname()) << std::endl;
+	{
+		logger.warning("User is not registered");
+		message.sendToClient(cliente->getFd(), ERR_NOTREGISTERED(cliente->getNickname()));
+	}
 }
 
 /* PRIVMSG */
@@ -191,8 +194,7 @@ void	IRCServer::join(const std::string& command, Client& client)
 			
 			// 7. Channel does not exist
 			if (ch == channels.end())
-			{ 
-				client.toString();
+			{
 				if (!isChannelNameValid(channelName)) // Valid channel name
 				{
 					logger.warning("[JOIN] :: Wrong channel name : " + channelName + ".");
@@ -243,7 +245,7 @@ void	IRCServer::join(const std::string& command, Client& client)
 				}
     		}
 			// 11. Send join msg
-			message.sendToChannel(channelName, RPL_JOINMSG(client.getNickname(), client.getHostname(), cmd_channels[0]), channels);
+			message.sendToChannel(channelName, RPL_JOINMSG(client.getNickname(), client.getHostname(), channelName), channels);
 
 			// 9. Send hexchat client msg
 			if (!ch->second.isMember(client.getFd()))
@@ -260,7 +262,6 @@ void	IRCServer::join(const std::string& command, Client& client)
 			// 12. Add clients to client's channel and channel's members
     		client.addChannel(channelName);
     		ch->second.addMember(client.getFd(), &client);
-			ch->second.toString();
 		}
 	}
 	else	// NEED MORE PARAMS

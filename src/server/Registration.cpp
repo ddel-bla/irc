@@ -91,7 +91,7 @@ void	IRCServer::registerNickname(std::string command, Client& client)
 			else if (isNicknameTaken(nickname))	// Not taken
 			{
 				logger.warning("[NICK] " + client.fdToString() + " --> '" + nickname +"' in use.");
-				message.sendToClient(client.getFd(), ERR_NICKCOLLISION(nickname));
+				message.sendToClient(client.getFd(), ERR_NICKNAMEINUSE(nickname));
 			}
 			else
 			{	
@@ -123,7 +123,6 @@ void	IRCServer::registerNickname(std::string command, Client& client)
 					}
 				}
 			}
-			toString(); // REMOVE
 		}
 		else if (command_len < 2) 	// Not enough params
 		{
@@ -140,7 +139,7 @@ void	IRCServer::registerNickname(std::string command, Client& client)
 	else
 	{
 		logger.warning("[NICK] " + client.fdToString() + " --> Not authenticated!");
-		std::cout << ERR_NOTREGISTERED(std::string("*")) << std::endl;
+		message.sendToClient(client.getFd(), ERR_NOTREGISTERED(std::string("*")));
 	}
 }
 
@@ -171,7 +170,6 @@ void	IRCServer::registerUsername(std::string command, Client& client)
 			{
 				logger.info("[USER] " + client.fdToString() + " --> Registered with username '" + split_command[1] + "'.");
 				client.setUsername(split_command[1]);
-				std::cout << client.getUsername() << std::endl;
 				registerRealname(command, client);
 				
 				// 4. Set registered to true if NICK and USER completed
@@ -233,7 +231,7 @@ bool	IRCServer::isValidNickname(const std::string nickname)
         return (false);
 
     for (size_t i = 0; i < nickname.size(); i++) {
-        if (!std::isalnum(nickname[i]) && nickname[i] != '_')
+        if (!std::isalnum(nickname[i]) && nickname[i] != ' ')
             return (false);
     }
 
