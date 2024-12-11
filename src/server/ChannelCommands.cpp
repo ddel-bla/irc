@@ -488,7 +488,8 @@ void IRCServer::part(const std::string& command, Client& client)
             }
 
             // 7. Remove the client from the channel
-            channel.removeMember(client.getFd()); // todo
+            channel.removeMemberfromChannels(client.getFd());
+            client.removeChannel(channelName); // todo
 
             // 8. Notify other channel members of the departure
             std::string msg_text = hx_part_format(channel.getName(), client);
