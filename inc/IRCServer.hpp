@@ -61,6 +61,7 @@ private:
 		std::string	hx_join_format(const std::string& command, Client& sender, bool member_joined);
 		std::string	hx_quit_format(const std::string& channel, Client& sender, const std::string& kicked_user, std::string& reason);
 		std::string hx_mode_format(const std::string& channel, Client& sender, bool addMode, char modeChar, std::string& param);
+		std::string hx_who_format(std::string& channelName, Client& sender, const std::map<int, Client*>& members);
 
 		/* PRIVMSG */
 		void	privMsg(const std::string& command, Client& clien);
@@ -82,6 +83,8 @@ private:
 		
 		void	mode(const std::string& command, Client& client);
 		void	setModes(Channel& channel, std::string& modes, std::vector<std::string> params, Client& sender);
+
+		void	who(const std::string& command, Client& client);
 
 public:
 		/* PARAMETRIZED CONSTRUCTOR*/

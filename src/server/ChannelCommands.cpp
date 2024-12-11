@@ -394,3 +394,49 @@ void IRCServer::setModes(Channel& ch, std::string& modes, std::vector<std::strin
         }   
     }
 }
+
+void IRCServer::who(const std::string& command, Client& client)
+{
+    logger.info("[WHO] :: User " + client.getNickname() + " requested WHO information.");
+
+    // 1. Split command
+    std::vector<std::string> split_command = Utils::splitBySpaces(command);
+    int command_len = split_command.size();
+
+    if (command_len >= 2)
+    {
+        // 2. Extract channel
+        std::string channelName = Utils::removeLeadingChar(split_command[1], '#');
+        std::map<std::string, Channel>::iterator ch = channels.find(channelName);
+
+        // 3. Channel does not exist
+        if (ch == channels.end()) 
+        {
+            logger.warning("[WHO] :: Channel does not exist: " + channelName + ".");
+            message.sendToClient(client.getFd(), ERR_NOSUCHCHANNEL(client.getNickname(), channelName));
+            return;
+        }
+
+        // 4. User not on channel
+        if (!ch->second.isMember(client.getFd())) 
+        {
+            logger.warning("[WHO] :: User " + client.getNickname() + " is not in channel '" + channelName + "'.");
+            message.sendToClient(client.getFd(), ERR_NOTONCHANNEL(client.getNickname(), channelName));
+            return;
+        }
+    
+        // 5. Msg obtain users
+        logger.info("[WHO] :: Listing users in channel " + channelName + ".");
+        std::string msg_text = hx_who_format(channelName, client, ch->second.getMembers());
+        message.sendToClient(client.getFd(), msg_text);
+
+        // 6. Msg end of list
+        message.sendToClient(client.getFd(), RPL_ENDOFNAMES(client.getNickname(), channelName));
+    }
+    else if (command_len < 2)   // NOT ENOUGH PARAMS
+    {
+        logger.warning("[WHO] :: Not enough parameters.");
+        message.sendToClient(client.getFd(), ERR_NEEDMOREPARAMS(client.getNickname()));
+        return;
+    }
+}

@@ -38,6 +38,8 @@ void IRCServer::process_command(std::string command, int fd)
 			topic(command, *cliente);
 		else if (split_command[0] == MODE)
 			mode(command, *cliente);
+		else if (split_command[0] == WHO)
+			who(command, *cliente);
 	}
 	else if (!cliente->isRegistred())
 	{

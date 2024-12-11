@@ -16,6 +16,7 @@
 #define INVITE  "INVITE"
 #define TOPIC   "TOPIC"
 #define MODE    "MODE"
+#define WHO     "WHO"
 
 /* RPL_ISUPPORT */
 #define CHANLIMIT   5                   // Number of channels a client may join
