@@ -14,7 +14,6 @@
 #include "IRCServer.hpp"
 #include "Message.hpp"
 #include "Macros.hpp"
-#include "Commands.hpp"
 #include "Logger.hpp"
 
 class IRCServer
@@ -43,6 +42,7 @@ private:
 		void process_command(std::string command, int fd);
 		void quit(std::string command, Client& client);
 		void removeFds(int fd);
+		void removeClientfromChannels(int fd);
 
 		/* REGISTRATION METHODS */
 		void 	checkRegistrationTimeout(void);
@@ -99,6 +99,8 @@ public:
 		/* PARAMETRIZED CONSTRUCTOR*/
 		IRCServer(int port, const std::string& password);
 
+		~IRCServer();
+		
 		/* MAIN METHODS*/
 		bool startServer();
 		void run();

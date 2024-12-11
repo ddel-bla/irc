@@ -11,8 +11,8 @@ void IRCServer::quit(std::string command, Client& client)
 	std::string msg = hx_generic_format(command, client);
 	message.sendToAll(msg, channels, client.getFd());
 	
-	close(client.getFd());
-	removeFds(client.getFd());
+	//close(client.getFd());
+	//removeFds(client.getFd());
 	removeClient(client.getFd());
 }
 
@@ -20,10 +20,14 @@ void IRCServer::removeClient(int client_fd)
 {
 	close(client_fd);
 
+	// Remove from channels
+	removeClientfromChannels(client_fd);
+
+	// Remove from clients
 	std::map<int, Client*>::iterator it = clients.find(client_fd);
     
+	
     if (it != clients.end()) {
-        // Liberar la memoria del cliente
         it->second->setNickname("");
 		it->second->setUsername("");
 		it->second->setConnectionTime(0); 
@@ -32,13 +36,8 @@ void IRCServer::removeClient(int client_fd)
         //clients.erase(it);
     }
 
+	// Remove from fds
 	removeFds(client_fd);
-	// for (size_t i = 0; i < fds.size(); ++i) {
-	// 	if (fds[i].fd == client_fd) {
-	// 		fds.erase(fds.begin() + i);
-	// 		break;
-	// 	}
-	// }
 }
 
 void IRCServer::removeFds(int fd)
@@ -48,5 +47,14 @@ void IRCServer::removeFds(int fd)
 			this->fds.erase(this->fds.begin() + i); 
 			return;
 		}
+	}
+}
+
+void IRCServer::removeClientfromChannels(int fd)
+{
+	for (std::map<std::string, Channel>::iterator it = channels.begin(); it != channels.end(); ++it) {
+        Channel& channel = it->second;
+
+		channel.removeMemberfromChannels(fd);	
 	}
 }

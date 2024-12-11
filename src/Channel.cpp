@@ -62,6 +62,16 @@ bool Channel::lMode(std::string& param, bool addMode)
     return true;
 }
 
+void Channel::removeMemberfromChannels(int client_fd)
+{
+    if (isMember(client_fd))
+        removeMember(client_fd);
+    if (isOperator(client_fd))
+        removeOperator(client_fd);
+    if (isInvited(client_fd))
+        removeInvited(client_fd);
+}
+
 void Channel::addMember(int client_fd, Client *client) {
     members[client_fd] = client;
 }

@@ -71,8 +71,7 @@ void    IRCServer::kick(const std::string& command, Client& client)
             message.sendToChannel(channelName, msg_text, channels);
 
             // 11. Delete channels
-            channel->second.removeMember(fd);
-            channel->second.removeOperator(fd);
+            channel->second.removeMemberfromChannels(fd);
             k_client->second->removeChannel(channelName);
         } 
     }
@@ -109,7 +108,17 @@ void    IRCServer::invite(const std::string& command, Client& client)
         std::string user = split_command[1];
         std::string channelName = Utils::removeLeadingChar(split_command[2], '#');
         
-        // 3. Channel not exists
+        // 3. User not exists
+        int invited_fd = findFdByNickname(user);
+        std::map<int, Client*>::iterator invited_user = clients.find(invited_fd);
+        if (invited_user == clients.end())
+        {
+            logger.warning("[MODE] :: Client : " + user + " does not exist.");
+            message.sendToClient(client.getFd(), ERR_NOSUCHNICK(user));
+            return ;
+        }
+
+        // 4. Channel not exists
         std::map<std::string, Channel>::iterator ch = channels.find(channelName);
         if (ch == channels.end())
         {
@@ -118,7 +127,7 @@ void    IRCServer::invite(const std::string& command, Client& client)
             return ;
         }
 
-        // 4. Channel not intive-only mode
+        // 5. Channel not intive-only mode
         if (!ch->second.isInviteOnly())
         {
             logger.warning("[INVITE] :: Channel : " + channelName + " has not invite-only mode.");
@@ -126,7 +135,7 @@ void    IRCServer::invite(const std::string& command, Client& client)
             return ;
         }
 
-        // 5. User has no privileges
+        // 6. User has no privileges
         if (!ch->second.isMember(client.getFd()))
         {
             logger.warning("[INVITE] :: Client : " + client.getNickname() + " is not in channel '" + channelName + "'.");
@@ -134,9 +143,7 @@ void    IRCServer::invite(const std::string& command, Client& client)
             return ;   
         }
 
-        // 6. Is invited user already on channel ?
-        int invited_fd = findFdByNickname(user);
-        std::map<int, Client*>::iterator invited_user = clients.find(invited_fd);
+        // 7. Is invited user already on channel ?
         if (ch->second.isMember(invited_fd))
         {
             logger.warning("[INVITE] :: Client : " + client.getNickname() + " is already in channel '" + channelName + "'.");
@@ -144,14 +151,14 @@ void    IRCServer::invite(const std::string& command, Client& client)
             return ;
         }
 
-        // 7. Add user to inviting list
+        // 8. Add user to inviting list
         ch->second.addInvited(invited_fd, invited_user->second);
 
-        // 8. Send client text (hxc)D
+        // 9. Send client text (hxc)D
         std::string msg_text = hx_generic_format(command, client);
         message.sendToClient(invited_fd, msg_text);
 
-        // 9. Invited message
+        // 10. Invited message
         message.sendToClient(client.getFd(), RPL_INVITING(client.getNickname(), invited_user->second->getNickname(), channelName));
     }
     else if (command_len > 3)   // NOT ENOGH PARAMS

@@ -7,6 +7,14 @@ IRCServer::IRCServer(int port, const std::string& password): version(VERSION), s
 	this->creationDate = Utils::getCurrentTimeISO8601();
 }
 
+/* DESTRUCTOR */
+IRCServer::~IRCServer()
+{
+	for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
+        delete it->second; // Libera el Client* asociado a cada fd
+    }
+    clients.clear();
+}
 /* METHODS */
 
 bool IRCServer::startServer()
@@ -85,6 +93,7 @@ void IRCServer::run()
 void IRCServer::acceptClient()
 {
     sockaddr_in	client_address;
+	std::memset(&client_address, 0, sizeof(client_address));
     socklen_t	address_length = sizeof(client_address);
 
     int	client_fd = accept(server_fd, (struct sockaddr*)&client_address, &address_length);
@@ -108,8 +117,10 @@ void IRCServer::acceptClient()
     struct pollfd new_client_fd;
     new_client_fd.fd = client_fd;
     new_client_fd.events = POLLIN;
+	new_client_fd.revents = 0;
 	new_client->setHostname(inet_ntoa(client_address.sin_addr));
     fds.push_back(new_client_fd);
+	(void) new_client_fd;
 
     logger.info("New client connected in fd: " + Utils::intToString(client_fd) + "and ip: " + new_client->getHostname());
 }
@@ -180,6 +191,7 @@ void	IRCServer::toString() const
 	output << BLUE << "Clients (" << clients.size() << "):" << RESET << "\n";
 	for (std::map<int, Client*>::const_iterator it = clients.begin(); it != clients.end(); ++it) {
 		output << "  - FD: " << it->first << " | Nickname: " << it->second->getNickname() << "\n";
+		it->second->toString();
 	}
 
 	// Channels

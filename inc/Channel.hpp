@@ -44,6 +44,7 @@ class Channel {
         void    removeInvited(int client_fd);
         bool    isInvited(int client_fd) const;
         size_t  countMembers() const;
+        void    removeMemberfromChannels(int client_fd);
 
 		/* GETTERS */
 		const std::string&  getName() const;
