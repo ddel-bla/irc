@@ -440,3 +440,63 @@ void IRCServer::who(const std::string& command, Client& client)
         return;
     }
 }
+
+void IRCServer::part(const std::string& command, Client& client)
+{
+    logger.info("[PART]:: User " + client.getNickname() + " is attempting to leave channel(s)...");
+
+    // 1. Split commands
+    std::vector<std::string> split_command = Utils::splitBySpaces(command);
+    int command_len = split_command.size();
+    
+    if (command_len > 2)
+    {
+        // 3. Extract channels
+        std::vector<std::string> channelNames = Utils::split(split_command[1], ",");
+
+        
+        for (std::vector<std::string>::iterator it = channelNames.begin(); it != channelNames.end(); ++it)
+        {
+            const std::string& channelNameRaw = *it;
+
+            // 4. Get channel name
+            std::string channelName = Utils::removeLeadingChar(channelNameRaw, '#');
+
+            // 5. Channel does not exist
+            std::map<std::string, Channel>::iterator channelIt = channels.find(channelName);
+            if (channelIt == channels.end())
+            {
+                logger.warning("[PART] :: Channel does not exist: " + channelName);
+                message.sendToClient(client.getFd(), ERR_NOSUCHCHANNEL(client.getNickname(), channelName));
+                continue;
+            }
+
+            // 6. Client not member
+            Channel& channel = channelIt->second;
+            if (!channel.isMember(client.getFd()))
+            {
+                logger.warning("[PART] :: Client " + client.getNickname() + " is not in channel: " + channelName);
+                message.sendToClient(client.getFd(), ERR_NOTONCHANNEL(client.getNickname(), channelName));
+                continue;
+            }
+
+            // 7. Remove the client from the channel
+            channel.removeMember(client.getFd()); // todo
+
+            // 8. Notify other channel members of the departure
+            std::string msg_text = hx_part_format(channel.getName(), client);
+            message.sendToChannel(channel.getName(), msg_text, channels, client.getFd());
+
+            // 9. Send confirmation to the client
+            message.sendToClient(client.getFd(), msg_text);
+
+            logger.info("[PART] :: Client " + client.getNickname() + " has left channel: " + channelName);
+        }
+    }
+    else if (command_len < 2)
+    {
+        logger.warning("[PART] :: Not enough parameters provided by " + client.getNickname());
+        message.sendToClient(client.getFd(), ERR_NEEDMOREPARAMS(client.getNickname()));
+        return;
+    }
+}

@@ -136,3 +136,24 @@ std::string	IRCServer::hx_who_format(std::string& channelName, Client& sender, c
 	message += "\r\n";
 	return (message);
 }
+
+/* PART */
+std::string	IRCServer::hx_part_format(const std::string& channel_name, Client& sender)
+{
+	//@time=2024-12-11T19:35:25.550Z :webo!~David@89.131.139.38 PART #hola
+	std::string message;
+
+	// TIME
+	message = "@time=" + Utils::getCurrentTimeISO8601();
+
+	// NICK SENDER
+	message += " :" + sender.getNickname() + "!";
+
+	// USER SENDER
+	message += "~" + sender.getUsername() + "@" + sender.getHostname() + " ";
+
+	// COMMAND
+	message += "PART #" + channel_name + CRLF;
+
+	return (message);
+}

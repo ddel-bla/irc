@@ -62,6 +62,7 @@ private:
 		std::string	hx_quit_format(const std::string& channel, Client& sender, const std::string& kicked_user, std::string& reason);
 		std::string hx_mode_format(const std::string& channel, Client& sender, bool addMode, char modeChar, std::string& param);
 		std::string hx_who_format(std::string& channelName, Client& sender, const std::map<int, Client*>& members);
+		std::string hx_part_format(const std::string& channel_name, Client& sender);
 
 		/* PRIVMSG */
 		void	privMsg(const std::string& command, Client& clien);
@@ -73,18 +74,26 @@ private:
 		bool	isChannelNameValid(const std::string& channelName);
 		void	showChannelHistory(const std::vector<std::string> history, int fd);
 
-		/* CHANNEL CMDS */
+		/* ---- CHANNEL CMDS ---- */
+		/* KICK */
 		void		kick(const std::string& command, Client& client);
 		std::string	getKickReason(const std::string& command, int command_len);
-
+		
+		/* INVITE */
 		void	invite(const std::string& command, Client& client);
 
+		/* TOPIC */
 		void	topic(const std::string& command, Client& client);
 		
+		/* MODE */
 		void	mode(const std::string& command, Client& client);
 		void	setModes(Channel& channel, std::string& modes, std::vector<std::string> params, Client& sender);
 
+		/* WHO */
 		void	who(const std::string& command, Client& client);
+
+		/* PART */
+		void	part(const std::string& command, Client& client);
 
 public:
 		/* PARAMETRIZED CONSTRUCTOR*/
