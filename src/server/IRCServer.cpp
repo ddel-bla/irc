@@ -163,7 +163,8 @@ void IRCServer::receiveData(int fd)
         
         // PROCESS EACH COMMAND
         for (size_t i = 0; i < commands.size(); i++)
-            process_command(commands[i], fd);
+			if (!commands[i].empty())
+            	process_command(commands[i], fd);
         
         client->clearBuffer();
     }

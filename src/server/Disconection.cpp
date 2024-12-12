@@ -28,12 +28,13 @@ void IRCServer::removeClient(int client_fd)
     
 	
     if (it != clients.end()) {
-        it->second->setNickname("");
+        // SE PUEDE ELIMINAR LO DEJO PORQUE FUNCIONA
+		it->second->setNickname("");
 		it->second->setUsername("");
 		it->second->setConnectionTime(0); 
 		it->second->setDisconnected(true);       
-        // Eliminar la entrada del mapa
-        //clients.erase(it);
+        delete it->second;
+		clients.erase(it);
     }
 
 	// Remove from fds
