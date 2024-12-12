@@ -249,7 +249,7 @@ void	IRCServer::join(const std::string& command, Client& client)
 				}
     		}
 			// 11. Send join msg
-			message.sendToChannel(channelName, RPL_JOINMSG(client.getNickname(), client.getHostname(), channelName), channels);
+			//message.sendToChannel(channelName, RPL_JOINMSG(client.getNickname(), client.getHostname(), channelName), channels);
 
 			// 9. Send hexchat client msg
 			if (!ch->second.isMember(client.getFd()))
