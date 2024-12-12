@@ -1,11 +1,40 @@
 #include "Channel.hpp"
 
 /* PARAMETRIZED CONSTRUCTOR */
-Channel::Channel(const std::string& name, const std::string& key): name(name), channelKey(key), inviteOnlyFlag(false), topicRestricted(false), userLimit(0) {}
+Channel::Channel(const std::string& name, const std::string& key): name(name), channelKey(key), inviteOnlyFlag(false), topicRestricted(false), userLimit(0) {
+    this->creationDate = Utils::getCurrentTimeISO8601();
+}
 
-Channel::Channel(const std::string& name): name(name), inviteOnlyFlag(false), topicRestricted(false), userLimit(0) {}
+Channel::Channel(const std::string& name): name(name), inviteOnlyFlag(false), topicRestricted(false), userLimit(0) {
+    this->creationDate = Utils::getCurrentTimeISO8601();
+}
 
 /* METHODS */
+
+std::string Channel::getModes(void)
+{
+    std::string modes;
+
+    modes = "+";
+    if (isInviteOnly())
+        modes += "i";
+    if (isTopicRestricted())
+        modes += "t";
+    if (getUserLimit() > 0)
+        modes += "l";
+    if (!getChannelKey().empty())
+        modes += "k";
+    
+    // ONLY +
+    if (modes.size() == 1)
+        return "";
+    
+    if (getUserLimit() > 0)
+        modes += " " + Utils::intToString(getUserLimit());
+    
+    return modes;
+}
+
 void Channel::iMode(bool addMode)
 {
     inviteOnlyFlag = addMode;
@@ -162,6 +191,10 @@ const std::map<int, Client*>& Channel::getOperators() const {
 
 const std::vector<std::string>& Channel::getHistory() const {
     return history;
+}
+
+const std::string& Channel::getCreationDate() const {
+    return creationDate;
 }
 
 /* SETTERS */

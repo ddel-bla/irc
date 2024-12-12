@@ -19,6 +19,8 @@ class Channel {
         bool                        topicRestricted;        // Indicates if only operators can change the topic
         size_t                      userLimit;              // Changed from 'int' to 'size_t'
         std::vector<std::string>	history;	            // Message history
+        std::string	                creationDate;
+
         
     public:
         /* PARAMETRIZED CONSTRUCTORS */
@@ -31,6 +33,7 @@ class Channel {
         bool    oMode(Client *client, bool addMode);
         bool    kMode(std::string& key, bool addMode);
         bool    lMode(std::string& limit, bool addMode);
+        std::string getModes(void);
 		void    addMember(int client_fd, Client* client);
 		void    removeMember(int client_fd);
 		bool    isMember(int client_fd) const;
@@ -56,6 +59,7 @@ class Channel {
 		const std::map<int, Client*>&   getMembers() const;
         const std::map<int, Client*>&   getOperators() const;
 		const std::vector<std::string>& getHistory() const;
+        const std::string& getCreationDate() const;
 
         /* SETTERS */
         void    setChannelKey(const std::string& key);

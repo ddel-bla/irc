@@ -287,7 +287,8 @@ void    IRCServer::mode(const std::string& command, Client& client)
         if (command_len == 2)
         {
             logger.warning("[MODE] :: No modes were giving (displaying channel '" + channelName + "' modes).");
-            sendRplISupport(client.getFd(), client.getNickname());
+            message.sendToClient(client.getFd(), RPL_CHANNELMODEIS(client.getNickname(), ch->second.getName(), ch->second.getModes()));
+            message.sendToClient(client.getFd(), RPL_CREATIONTIME(client.getNickname(), ch->second.getName(), ch->second.getCreationDate()));
             return ;
         }
         
@@ -401,6 +402,7 @@ void IRCServer::setModes(Channel& ch, std::string& modes, std::vector<std::strin
         }   
     }
 }
+
 
 void IRCServer::who(const std::string& command, Client& client)
 {
