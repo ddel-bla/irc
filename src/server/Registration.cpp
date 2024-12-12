@@ -231,7 +231,7 @@ bool	IRCServer::isValidNickname(const std::string nickname)
         return (false);
 
     for (size_t i = 0; i < nickname.size(); i++) {
-        if (!std::isalnum(nickname[i]) && nickname[i] != ' ')
+        if (!std::isalnum(nickname[i]) && nickname[i] != '_' && nickname[i] != '-')
             return (false);
     }
 
