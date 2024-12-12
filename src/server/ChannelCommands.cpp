@@ -432,12 +432,10 @@ void IRCServer::who(const std::string& command, Client& client)
             return;
         }
     
-        // 5. Msg obtain users
+        // 5. Msg LIST users
         logger.info("[WHO] :: Listing users in channel " + channelName + ".");
-        std::string msg_text = hx_who_format(channelName, client, ch->second.getMembers());
+        std::string msg_text = hx_who_format(ch->second, client, ch->second.getMembers());
         message.sendToClient(client.getFd(), msg_text);
-
-        // 6. Msg end of list
         message.sendToClient(client.getFd(), RPL_ENDOFNAMES(client.getNickname(), channelName));
     }
     else if (command_len < 2)   // NOT ENOUGH PARAMS

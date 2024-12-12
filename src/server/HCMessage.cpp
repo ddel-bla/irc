@@ -113,7 +113,7 @@ std::string IRCServer::hx_mode_format(const std::string& channelName, Client& se
 }
 
 /* WHO FORMAT */
-std::string	IRCServer::hx_who_format(std::string& channelName, Client& sender, const std::map<int, Client*>& members)
+std::string	IRCServer::hx_who_format(Channel& channel, Client& sender, const std::map<int, Client*>& members)
 {
 	//"@time=2024-12-11T18:45:06.544Z :copper.libera.chat 353 webo = #hola :David webo;
 	std::string message;
@@ -126,11 +126,13 @@ std::string	IRCServer::hx_who_format(std::string& channelName, Client& sender, c
 	message += " : 353 " + sender.getNickname() + " = ";
 
 	// USER SENDER
-	message += "#" + channelName + " :";
+	message += "#" + channel.getName() + " :";
 
 	for (std::map<int, Client*>::const_iterator it = members.begin(); it != members.end(); ++it)
     {
-        message += it->second->getNickname() + " ";
+        if (channel.isOperator(it->second->getFd()))
+			message += "@";
+		message += it->second->getNickname() + " ";
     }
 
 	message += "\r\n";
