@@ -182,6 +182,19 @@ void	IRCServer::handle_signals(int signum)
 /* SWITCH CMD MAP */
 std::map<std::string, Command> IRCServer::createCommandMap()
 {
+	commandMap["PASS"] = PASS;
+	commandMap["USER"] = USER;
+	commandMap["NICK"] = NICK;
+	commandMap["QUIT"] = QUIT;
+	commandMap["PRIVMSG"] = PRIVMSG;
+	commandMap["JOIN"] = JOIN;
+	commandMap["KICK"] = KICK;
+	commandMap["INVITE"] = INVITE;
+	commandMap["TOPIC"] = TOPIC;
+	commandMap["MODE"] = MODE;
+	commandMap["WHO"] = WHO;
+	commandMap["PART"] = PART;
+	commandMap["TRIVIAL"] = TRIVIAL;
     commandMap["START"] = START;
     commandMap["ANSWER"] = ANSWER;
     commandMap["QUIT"] = T_QUIT;

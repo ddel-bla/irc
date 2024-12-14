@@ -3,8 +3,8 @@
 /* MAIN METHOD */
 void IRCServer::process_command(std::string command, int fd)
 {
-	std::vector<std::string> split_command = Utils::splitBySpaces(command);;
-	Client	*cliente = clients[fd];
+	std::vector<std::string> split_command = Utils::splitBySpaces(command);
+	Client	*client = clients[fd];
 
 	if (command.empty())
 		return ;
@@ -13,47 +13,72 @@ void IRCServer::process_command(std::string command, int fd)
 	if (!split_command.size())
 		return ;
 	
-	// TO upper
-	split_command[0] = Utils::toUpper(split_command[0]);
+	// Handle commands using a switch
+	Command cmd = commandToInt(Utils::toUpper(split_command[0]));
 	
-	if (split_command[0] == PASS)
-		authenticate(command, *cliente);
-	else if (split_command[0] == USER)
-		registerUsername(command, *cliente);
-	else if (split_command[0] == NICK)
-		registerNickname(command, *cliente);
-	else if (split_command[0] == QUIT)
-		quit(command, *cliente);
-	else if (cliente->isRegistred()) // Si está registrado puede ejecutar otros comandos
+	switch (cmd)
 	{
-		if (split_command[0] == PRIVMSG)
-			privMsg(command, *cliente);
-		else if (split_command[0] == JOIN)
-			join(command, *cliente);
-		else if (split_command[0] == KICK)
-			kick(command, *cliente);
-		else if (split_command[0] == INVITE)
-			invite(command, *cliente);
-		else if (split_command[0] == TOPIC)
-			topic(command, *cliente);
-		else if (split_command[0] == MODE)
-			mode(command, *cliente);
-		else if (split_command[0] == WHO)
-			who(command, *cliente);
-		else if (split_command[0] == PART)
-			part(command, *cliente);
-		else if (split_command[0] == TRIVIAL)
-			trivial(command, *cliente);
-		else
-		{
-			logger.warning("Command not found");
-			message.sendToClient(cliente->getFd(), ERR_UNKNOWNCOMMAND(cliente->getNickname(), command));
-		}
+		case PASS:
+			authenticate(command, *client);
+			break;
+		
+		case USER:
+			registerUsername(command, *client);
+			break;
+		
+		case NICK:
+			registerNickname(command, *client);
+			break;
+		case QUIT:
+			quit(command, *client);
+			break;
+		
+		default:
+			if (!client->isRegistred())
+			{
+				logger.warning("User is not registered");
+				message.sendToClient(client->getFd(), ERR_NOTREGISTERED(client->getNickname()));
+			}
+			break;
 	}
-	else if (!cliente->isRegistred())
+	if (client->isRegistred()) // Si está registrado puede ejecutar otros comandos
 	{
-		logger.warning("User is not registered");
-		message.sendToClient(cliente->getFd(), ERR_NOTREGISTERED(cliente->getNickname()));
+		switch (cmd)
+		{
+			case PRIVMSG:
+				privMsg(command, *client);
+				break;
+			case JOIN:
+				join(command, *client);
+				break;
+			case KICK:
+				kick(command, *client);
+				break;
+			case INVITE:
+				invite(command, *client);
+				break;
+			case TOPIC:
+				topic(command, *client);
+				break;
+			case MODE:
+				mode(command, *client);
+				break;
+			case WHO:
+				who(command, *client);
+				break;
+			case PART:
+				part(command, *client);
+				break;
+			case TRIVIAL:
+				trivial(command, *client);
+				break;
+			case UNKNOWN:
+				logger.warning("Command not found");
+				message.sendToClient(client->getFd(), ERR_UNKNOWNCOMMAND(client->getNickname(), command));
+				break;
+			default:
+				break;
+		}
 	}
 }
 

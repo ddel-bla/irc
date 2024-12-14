@@ -5,21 +5,6 @@
 #define VERSION     "1.0.0"
 #define SERVERNAME  "Servidor Sirviente"
 
-/* COMMANDS */
-#define PASS    "PASS"
-#define NICK    "NICK"
-#define USER    "USER"
-#define QUIT    "QUIT"
-#define JOIN    "JOIN"
-#define PRIVMSG "PRIVMSG"
-#define KICK    "KICK"
-#define INVITE  "INVITE"
-#define TOPIC   "TOPIC"
-#define MODE    "MODE"
-#define WHO     "WHO"
-#define PART    "PART"
-#define TRIVIAL "!TRIVIAL"
-
 /* RPL_ISUPPORT */
 #define CHANLIMIT   5                   // Number of channels a client may join
 #define CHANMODES   "i,t,k,o,l"         // Channles modes available

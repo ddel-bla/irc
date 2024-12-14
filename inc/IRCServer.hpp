@@ -18,6 +18,19 @@
 #include "TrivialBot.hpp"
 
 enum Command {
+	PASS, 
+	USER,
+	NICK,
+	QUIT,
+	PRIVMSG,
+	JOIN,
+	KICK,
+	INVITE,
+	TOPIC,
+	MODE,
+	WHO,
+	PART,
+	TRIVIAL,
     START,
     ANSWER,
     T_QUIT,

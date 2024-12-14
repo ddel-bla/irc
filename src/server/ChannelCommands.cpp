@@ -456,12 +456,11 @@ void IRCServer::part(const std::string& command, Client& client)
     std::vector<std::string> split_command = Utils::splitBySpaces(command);
     int command_len = split_command.size();
     
-    if (command_len > 2)
+    if (command_len >= 2)
     {
         // 3. Extract channels
         std::vector<std::string> channelNames = Utils::split(split_command[1], ",");
 
-        
         for (std::vector<std::string>::iterator it = channelNames.begin(); it != channelNames.end(); ++it)
         {
             const std::string& channelNameRaw = *it;
