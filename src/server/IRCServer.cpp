@@ -3,7 +3,8 @@
 bool IRCServer::signal = false;
 
 /* PARAMETRIZED CONSTRUCTOR */
-IRCServer::IRCServer(int port, const std::string& password): version(VERSION), servername(SERVERNAME), port(port), password(password), server_fd(-1), logger("application.log", true) {
+IRCServer::IRCServer(int port, const std::string& password): version(VERSION), servername(SERVERNAME), port(port), password(password), server_fd(-1), logger("application.log", true), trivialBot(F_QUESTIONS) {
+	this->commandMap = createCommandMap();
 	this->creationDate = Utils::getCurrentTimeISO8601();
 }
 
@@ -11,10 +12,11 @@ IRCServer::IRCServer(int port, const std::string& password): version(VERSION), s
 IRCServer::~IRCServer()
 {
 	for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
-        delete it->second; // Libera el Client* asociado a cada fd
+        delete it->second; 
     }
     clients.clear();
 }
+
 /* METHODS */
 
 bool IRCServer::startServer()
@@ -175,6 +177,24 @@ void	IRCServer::handle_signals(int signum)
 {
 	signal = true;
 	(void) signum;
+}
+
+/* SWITCH CMD MAP */
+std::map<std::string, Command> IRCServer::createCommandMap()
+{
+    commandMap["START"] = START;
+    commandMap["ANSWER"] = ANSWER;
+    commandMap["QUIT"] = T_QUIT;
+    commandMap["HELP"] = HELP;
+    return commandMap;
+}
+
+Command IRCServer::commandToInt(const std::string& command) {
+    std::map<std::string, Command>::const_iterator it = commandMap.find(command);
+    if (it != commandMap.end()) {
+        return it->second;
+    }
+    return UNKNOWN;
 }
 
 /* TO STRING */

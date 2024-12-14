@@ -20,7 +20,8 @@ SRC     =   Channel \
             server/HCMessage \
             server/Registration \
 			server/Disconection \
-			server/ChannelCommands  
+			server/ChannelCommands \
+			TrivialBot \
 
 SRCS    = $(addprefix $(SRC_DIR), $(addsuffix .cpp, $(SRC)))
 OBJS    = $(addprefix $(OBJ_DIR), $(addsuffix .o, $(SRC)))

@@ -1,7 +1,7 @@
 #include "Client.hpp"
 
 /* PARAMETRIZED CONSTRUCTOR */
-Client::Client(int fd): fd(fd), autenticate(false), registred(false), disconnected(false) {
+Client::Client(int fd): fd(fd), autenticate(false), registred(false), disconnected(false), playing(false) {
 	connectionTime = std::time(NULL);
 }
 
@@ -39,7 +39,11 @@ void Client::appendToBuffer(const char* data, size_t length) {
 }
 
 size_t Client::getChannelCount() const {
-        return channels.size();
+    return channels.size();
+}
+
+void Client::addAnswerQuestion(int questionId) {
+    answerQuestions.push_back(questionId);
 }
 
 /* GETTERS */
@@ -83,6 +87,22 @@ bool Client::isDisconnected() const {
     return disconnected;
 }
 
+bool Client::isPlaying() const {
+    return playing;
+}
+
+int Client::getCurrentQuestion() const {
+    return currentQuestion;
+}
+
+int Client::getScore() const {
+    return score;
+}
+
+std::vector<int> Client::getAnswerQuestions() const {
+    return answerQuestions;
+}
+
 /* SETTERS */
 void Client::setFd(int fd) {
 	this->fd = fd;
@@ -122,6 +142,18 @@ void Client::setConnectionTime(const std::time_t connectionTime) {
 
 void Client::setDisconnected(const bool disconnected) {
     this->disconnected = disconnected;
+}
+
+void Client::setPlaying(const bool playing) {
+    this->playing = playing;
+}
+
+void Client::setCurrentQuestion(const int currentQuestion) {
+    this->currentQuestion = currentQuestion;
+}
+
+void Client::setScore(const int score) {
+    this->score = score;
 }
 
 /* TO STRING */

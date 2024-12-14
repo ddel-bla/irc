@@ -1,0 +1,40 @@
+¿Quién es el animal terrestre más rápido del mundo?|Tigre|Guepardo|León|Antílope|2
+¿Qué filósofo griego es conocido por su frase 'Solo sé que no sé nada'?|Platón|Aristóteles|Sócrates|Pitágoras|3
+¿Cuál es el país más pequeño del mundo?|Mónaco|Ciudad del Vaticano|Nauru|San Marino|2
+¿Cuántos huesos tiene el cuerpo humano adulto?|206|208|210|212|1
+¿Cuál es el elemento químico más abundante en el universo?|Oxígeno|Hidrógeno|Helio|Carbono|2
+¿Quién pintó "La persistencia de la memoria"?|Salvador Dalí|Pablo Picasso|Vincent van Gogh|Leonardo da Vinci|1
+¿Cómo se llama la teoría científica que explica el origen del universo?|Teoría de la relatividad|Teoría de la evolución|Teoría del Big Bang|Teoría cuántica|3
+¿Cuál es el país con más islas en el mundo?|Canadá|Suecia|Indonesia|Noruega|1
+¿Cuál es el río más largo del mundo?|Amazonas|Nilo|Yangtsé|Misisipi|1
+¿Cuál es la capital de Australia?|Sídney|Melbourne|Canberra|Brisbane|3
+¿Cuál de estos planetas no tiene lunas?|Venus|Marte|Mercurio|Júpiter|3
+¿Quién inventó el teléfono?|Alexander Graham Bell|Nikola Tesla|Thomas Edison|Guglielmo Marconi|1
+¿Qué continente es conocido como "la cuna de la humanidad"?|África|Asia|Europa|América|1
+¿En qué país se originaron los Juegos Olímpicos?|Grecia|Roma|Egipto|China|1
+¿Qué famoso físico desarrolló la teoría de la gravedad?|Albert Einstein|Galileo Galilei|Isaac Newton|Nikola Tesla|3
+¿Cuántos continentes hay en la Tierra?|5|6|7|8|3
+¿Cuál es la capital de Japón?|Pekín|Seúl|Tokio|Bangkok|3
+¿En qué océano se encuentra la famosa isla de Pascua?|Atlántico|Índico|Pacífico|Ártico|3
+¿Qué autor escribió "1984" y "Rebelión en la granja"?|George Orwell|Aldous Huxley|Ray Bradbury|J.R.R. Tolkien|1
+¿Qué animal tiene la lengua más larga en proporción a su cuerpo?|Jirafa|Camaleón|Hormiga|Colibrí|2
+¿Qué país tiene la mayor cantidad de bibliotecas públicas por habitante?|Estados Unidos|Suecia|Finlandia|Japón|2
+¿Quién fue el primer ser humano en viajar al espacio?|Yuri Gagarin|Neil Armstrong|John Glenn|Valentina Tereshkova|1
+¿Cuál es el único continente que no tiene ratas?|África|Australia|Antártida|Europa|3
+¿Cómo se llama la isla más grande del mundo?|Groenlandia|Australia|Madagascar|Nueva Guinea|1
+¿Cuál es el idioma más hablado del mundo?|Inglés|Español|Mandarín|Hindi|3
+¿En qué año se construyó la Gran Muralla China?|123 a.C.|200 a.C.|500 a.C.|1500 d.C.|2
+¿Cuál es la montaña más alta de África?|Monte Everest|Monte Kilimanjaro|Mont Blanc|Monte Elbrús|2
+¿Qué animal es conocido por su capacidad de regenerar partes de su cuerpo?|Estrella de mar|Cangrejo|Pulpo|Gecko|1
+¿En qué país se encuentra el desierto de Atacama?|Chile|Perú|Argentina|Bolivia|1
+¿Quién fue el primer presidente de Estados Unidos?|George Washington|Thomas Jefferson|Abraham Lincoln|John Adams|1
+¿Qué lenguaje de programación se utiliza principalmente para desarrollar aplicaciones de Android?|Swift|Java|Kotlin|C#|3
+¿Qué significa la sigla 'HTML'?|HyperText Markup Language|HyperText Machine Language|HighText Markup Language|Home Tool Markup Language|1
+¿Qué hace la palabra clave 'void' en C++?|Devuelve un valor|No devuelve valor|Declara una variable|Especifica un tipo de dato|2
+¿En qué año se lanzó el lenguaje de programación Python?|1980|1985|1991|1995|3
+¿Qué operador en C++ se usa para acceder a los miembros de una estructura a través de un puntero?|. (punto)|-> (flecha)|& (referencia)|* (desreferencia)|2
+¿Qué función en C++ se usa para obtener la longitud de una cadena?|strlen()|length()|size()|str_len()|1
+¿Qué es un 'stack' en programación?|Una estructura de datos que sigue el principio FIFO|Una estructura de datos que sigue el principio LIFO|Una base de datos|Un sistema operativo|2
+¿Qué significa la sigla 'API' en programación?|Application Programming Interface|Application Process Interface|Auto Program Instruction|Automated Programming Interface|1
+¿Qué es un 'array' en C++?|Una estructura de datos para almacenar números solamente|Una estructura de datos que almacena elementos de tipo genérico|Una lista ordenada de elementos de tamaño fijo|Un tipo de puntero|3
+¿Cuál es la principal diferencia entre una variable local y una variable global en C++?|Las variables globales pueden ser accedidas en cualquier parte del código|Las variables locales solo se pueden acceder dentro de la función o bloque donde fueron declaradas|Las variables locales no existen|Las variables globales son más rápidas de acceder|2

@@ -18,6 +18,7 @@
 #define MODE    "MODE"
 #define WHO     "WHO"
 #define PART    "PART"
+#define TRIVIAL "!TRIVIAL"
 
 /* RPL_ISUPPORT */
 #define CHANLIMIT   5                   // Number of channels a client may join
@@ -42,7 +43,7 @@
 /* QUIT default reason*/
 #define QUIT_DEFAULT "QUIT :Leaving"
 
-/* ----- SYSTEM MESSAGES -----*/
+/* ----- SYSTEM MESSAGES ----- */
 /* welcome */
 #define RPL_CONNECTED(nick)							(": 001 " + nick + " : Welcome to the IRC server!" + CRLF)
 #define RPL_YOURHOST(nick)                          (": 002 " + nick + " : Your host is " + SERVERNAME + ", running version " + VERSION + CRLF)
@@ -94,6 +95,22 @@
 #define ERR_NICKTOOLONG(nick)                       (": 992 " + nick + " :Nick too long! ( max length: " + Utils::intToString(NICKLEN) + " )" + CRLF)
 #define ERR_INVALIDCHANNAME(channel)                (": 993 #" + channel + " :Invalid channel name! ('#', '&' not allowed, max length: " + Utils::intToString(CHANNELLEN) + " )" + CRLF)
 #define ERR_TOOMANYPARAMS(nick, command)            (": 989 " + nick + " '" + command + "' :Too many parameters" + CRLF)
+
+/* ----- TRIVIAL BOT ----- */
+/* QUESTIONS FILE */
+#define F_QUESTIONS "resources/questions.txt"
+#define NUM_QUESTIONS 5
+
+/* MSG */
+#define BOT_WELCOME(nick)                   (": 000 " + nick + " :Welcome to the trivial game! Good luck!" + CRLF)
+#define BOT_CORRECTANSWER(nick, score)      (": 000 " + nick + " :That's right! Your current score is: " + Utils::intToString(score) + "!" + CRLF)
+#define BOT_INCORRECTANSWER(nick, answer)   (": 000 " + nick + " :Incorrect! The correct answer was: " + answer + " :( " + CRLF)
+#define BOT_ENDGAME(nick, score)            (": 000 " + nick + " :Game over! Your final score was: " + Utils::intToString(score) + " out of " + Utils::intToString(NUM_QUESTIONS) + " XD" + CRLF)
+#define BOT_QUITGAME(nick)                  (": 000 " + nick + " :Bye, thanks for playing!" + CRLF)
+#define BOT_ERR_NOTPLAYING(nick)            (": 000 " + nick + " :You are not playing right now! Use !trivial start." + CRLF)
+#define BOT_ERR_ALREDYPLAYING(nick)         (": 000 " + nick + " :You are already playing!" + CRLF)
+#define BOT_ERR_QUESTIONSNOTFOUND(nick)     (": 000 " + nick + " :No questions found! Ending game..." + CRLF)
+#define BOT_ERR_NOANSWERGIVEN(nick)         (": 000 " + nick + " :Please specify your answer. Example: !trivial answer <number>." + CRLF)
 
 /* COLORS */
 #define RED		"\033[0;91m"

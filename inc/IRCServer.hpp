@@ -15,6 +15,15 @@
 #include "Message.hpp"
 #include "Macros.hpp"
 #include "Logger.hpp"
+#include "TrivialBot.hpp"
+
+enum Command {
+    START,
+    ANSWER,
+    T_QUIT,
+    HELP,
+    UNKNOWN 
+};
 
 class IRCServer
 {
@@ -27,10 +36,12 @@ private:
 		std::string	password;
 		int			server_fd;
 		std::vector<struct pollfd>		fds;
-		std::map<int, Client*>			clients; // FD to Client object mapping
-		std::map<std::string, Channel>	channels; // Map to manage channels
+		std::map<int, Client*>			clients; 	// FD to Client object mapping
+		std::map<std::string, Channel>	channels; 	// Map to manage channels
 		Logger 							logger;		// Logger
-		Message 						message; // New attribute to handle events
+		Message 						message; 	// New attribute to handle events
+		std::map<std::string, Command> 	commandMap; 	// Switch cmd map
+		TrivialBot						trivialBot;
 
 		/* GLOBAL VARIABLES */
 		static bool signal;
@@ -43,6 +54,8 @@ private:
 		void quit(std::string command, Client& client);
 		void removeFds(int fd);
 		void removeClientfromChannels(int fd);
+		std::map<std::string, Command> createCommandMap();
+		Command commandToInt(const std::string& command);
 
 		/* REGISTRATION METHODS */
 		void 	checkRegistrationTimeout(void);
@@ -95,6 +108,8 @@ private:
 		/* PART */
 		void	part(const std::string& command, Client& client);
 
+		/* BOT */
+		void	trivial(std::string& commmand, Client& client);
 public:
 		/* PARAMETRIZED CONSTRUCTOR*/
 		IRCServer(int port, const std::string& password);

@@ -26,6 +26,11 @@ class Client {
 		std::time_t connectionTime;
 		bool		disconnected;
 		std::vector<std::string>	channels;	// CHANNELS PARTICIPATING
+		/* TRIVIAL */
+		bool		playing;
+		int			currentQuestion;
+		int			score;
+		std::vector<int>	answerQuestions;
 
 	public:
 		/* PARAMETRIZED CONSTRUCTOR */
@@ -40,6 +45,7 @@ class Client {
 		void	removeChannel(const std::string& channel);
 		size_t	getChannelCount() const;
 		void 	appendToBuffer(const char* data, size_t length);
+		void	addAnswerQuestion(int questionId);
 		
 		/* GETTERS */
 		int getFd() const;
@@ -52,6 +58,10 @@ class Client {
 		bool isRegistred() const;
 		std::time_t getConnectionTime() const;
 		bool isDisconnected() const;
+		bool isPlaying() const;
+		int	 getCurrentQuestion() const;
+		int	 getScore() const;
+		std::vector<int> getAnswerQuestions() const;
 
 		/* SETTERS */
 		void setFd(int fd);
@@ -64,7 +74,10 @@ class Client {
 		void setRegistred(const bool registred);
 		void setConnectionTime(const std::time_t connectionTime);
 		void setDisconnected(const bool disconnected);
-
+		void setPlaying(const bool playing);
+		void setCurrentQuestion(const int currentQuestion);
+		void setScore(const int score);
+		
 		/* TO STRING */
 		void	toString() const;
 		std::string	fdToString();

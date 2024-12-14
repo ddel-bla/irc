@@ -42,6 +42,8 @@ void IRCServer::process_command(std::string command, int fd)
 			who(command, *cliente);
 		else if (split_command[0] == PART)
 			part(command, *cliente);
+		else if (split_command[0] == TRIVIAL)
+			trivial(command, *cliente);
 	}
 	else if (!cliente->isRegistred())
 	{
