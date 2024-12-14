@@ -44,6 +44,11 @@ void IRCServer::process_command(std::string command, int fd)
 			part(command, *cliente);
 		else if (split_command[0] == TRIVIAL)
 			trivial(command, *cliente);
+		else
+		{
+			logger.warning("Command not found");
+			message.sendToClient(cliente->getFd(), ERR_UNKNOWNCOMMAND(cliente->getNickname(), command));
+		}
 	}
 	else if (!cliente->isRegistred())
 	{
