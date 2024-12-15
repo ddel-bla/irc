@@ -3,7 +3,7 @@
 bool IRCServer::signal = false;
 
 /* PARAMETRIZED CONSTRUCTOR */
-IRCServer::IRCServer(int port, const std::string& password): version(VERSION), servername(SERVERNAME), port(port), password(password), server_fd(-1), logger("application.log", true), trivialBot(F_QUESTIONS) {
+IRCServer::IRCServer(int port, const std::string& password): version(VERSION), servername(SERVERNAME), port(port), password(password), server_fd(-1), logger("application.log", true) {
 	this->commandMap = createCommandMap();
 	this->creationDate = Utils::getCurrentTimeISO8601();
 }
@@ -194,7 +194,6 @@ std::map<std::string, Command> IRCServer::createCommandMap()
 	commandMap["MODE"] = MODE;
 	commandMap["WHO"] = WHO;
 	commandMap["PART"] = PART;
-	commandMap["TRIVIAL"] = TRIVIAL;
     commandMap["START"] = START;
     commandMap["ANSWER"] = ANSWER;
     commandMap["QUIT"] = T_QUIT;

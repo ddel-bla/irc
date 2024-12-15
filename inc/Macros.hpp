@@ -87,15 +87,15 @@
 #define NUM_QUESTIONS 5
 
 /* MSG */
-#define BOT_WELCOME(nick)                   (": 000 " + nick + " :Welcome to the trivial game! Good luck!" + CRLF)
-#define BOT_CORRECTANSWER(nick, score)      (": 000 " + nick + " :That's right! Your current score is: " + Utils::intToString(score) + "!" + CRLF)
-#define BOT_INCORRECTANSWER(nick, answer)   (": 000 " + nick + " :Incorrect! The correct answer was: " + answer + " :( " + CRLF)
-#define BOT_ENDGAME(nick, score)            (": 000 " + nick + " :Game over! Your final score was: " + Utils::intToString(score) + " out of " + Utils::intToString(NUM_QUESTIONS) + " XD" + CRLF)
-#define BOT_QUITGAME(nick)                  (": 000 " + nick + " :Bye, thanks for playing!" + CRLF)
-#define BOT_ERR_NOTPLAYING(nick)            (": 000 " + nick + " :You are not playing right now! Use !trivial start." + CRLF)
-#define BOT_ERR_ALREDYPLAYING(nick)         (": 000 " + nick + " :You are already playing!" + CRLF)
-#define BOT_ERR_QUESTIONSNOTFOUND(nick)     (": 000 " + nick + " :No questions found! Ending game..." + CRLF)
-#define BOT_ERR_NOANSWERGIVEN(nick)         (": 000 " + nick + " :Please specify your answer. Example: !trivial answer <number>." + CRLF)
+#define BOT_WELCOME                         " :Welcome to the trivial game! Good luck!" + CRLF
+#define BOT_CORRECTANSWER(score)            (" :That's right! Your current score is: " + Utils::intToString(score) + "!" + CRLF)
+#define BOT_INCORRECTANSWER(answer)         (" :Incorrect! The correct answer was: " + answer + " :( " + CRLF)
+#define BOT_ENDGAME(score)                  (" :Game over! Your final score was: " + Utils::intToString(score) + " out of " + Utils::intToString(NUM_QUESTIONS) + " XD" + CRLF)
+#define BOT_QUITGAME                        " :Bye, thanks for playing!" + CRLF
+#define BOT_ERR_NOTPLAYING                  " :You are not playing right now! Use !trivial start." + CRLF
+#define BOT_ERR_ALREDYPLAYING               " :You are already playing!" + CRLF
+#define BOT_ERR_QUESTIONSNOTFOUND           " :No questions found! Ending game..." + CRLF
+#define BOT_ERR_NOANSWERGIVEN               " :Please specify your answer. Example: !trivial answer <number>." + CRLF
 
 /* COLORS */
 #define RED		"\033[0;91m"

@@ -37,4 +37,3 @@
 ¿Qué es un 'stack' en programación?|Una estructura de datos que sigue el principio FIFO|Una estructura de datos que sigue el principio LIFO|Una base de datos|Un sistema operativo|2
 ¿Qué significa la sigla 'API' en programación?|Application Programming Interface|Application Process Interface|Auto Program Instruction|Automated Programming Interface|1
 ¿Qué es un 'array' en C++?|Una estructura de datos para almacenar números solamente|Una estructura de datos que almacena elementos de tipo genérico|Una lista ordenada de elementos de tamaño fijo|Un tipo de puntero|3
-¿Cuál es la principal diferencia entre una variable local y una variable global en C++?|Las variables globales pueden ser accedidas en cualquier parte del código|Las variables locales solo se pueden acceder dentro de la función o bloque donde fueron declaradas|Las variables locales no existen|Las variables globales son más rápidas de acceder|2

@@ -4,7 +4,7 @@ bool areArgsValid(std::string& port, std::string& passwd) {
     if (!(std::atoi(port.c_str()) >= 1024 && std::atoi(port.c_str()) <= 65535))
         return false;
 
-    if (std::strlen(passwd.c_str()) > 15)
+    if (std::strlen(passwd.c_str()) > 15 || Utils::splitBySpaces(passwd).size() > 1)
         return false;
 
     return true;
@@ -17,7 +17,8 @@ void start_signals(void)
     signal(SIGPIPE, SIG_IGN);
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
     if (argc != 3) {
         std::cerr << "Usage: ./ircserv <port> <password>" << std::endl;
         return EXIT_FAILURE;

@@ -2,4 +2,4 @@
 .vscode/
 irc
 ircserv
-application.log
+*.log

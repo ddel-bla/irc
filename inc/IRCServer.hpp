@@ -15,7 +15,6 @@
 #include "Message.hpp"
 #include "Macros.hpp"
 #include "Logger.hpp"
-#include "TrivialBot.hpp"
 
 enum Command {
 	PASS, 
@@ -54,7 +53,6 @@ private:
 		Logger 							logger;		// Logger
 		Message 						message; 	// New attribute to handle events
 		std::map<std::string, Command> 	commandMap; 	// Switch cmd map
-		TrivialBot						trivialBot;
 
 		/* GLOBAL VARIABLES */
 		static bool signal;

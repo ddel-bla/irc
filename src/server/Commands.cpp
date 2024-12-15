@@ -69,9 +69,6 @@ void IRCServer::process_command(std::string command, int fd)
 			case PART:
 				part(command, *client);
 				break;
-			case TRIVIAL:
-				trivial(command, *client);
-				break;
 			case UNKNOWN:
 				logger.warning("Command not found");
 				message.sendToClient(client->getFd(), ERR_UNKNOWNCOMMAND(client->getNickname(), command));
