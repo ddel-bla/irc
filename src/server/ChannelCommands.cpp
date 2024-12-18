@@ -127,15 +127,7 @@ void    IRCServer::invite(const std::string& command, Client& client)
             return ;
         }
 
-        // 5. Channel not intive-only mode
-        if (!ch->second.isInviteOnly())
-        {
-            logger.warning("[INVITE] :: Channel : " + channelName + " has not invite-only mode.");
-            message.sendToClient(client.getFd(), ERR_NOSUCHCHANNEL(client.getNickname(), channelName));
-            return ;
-        }
-
-        // 6. User has no privileges
+        // 5. User has no privileges
         if (!ch->second.isMember(client.getFd()))
         {
             logger.warning("[INVITE] :: Client : " + client.getNickname() + " is not in channel '" + channelName + "'.");
@@ -143,7 +135,7 @@ void    IRCServer::invite(const std::string& command, Client& client)
             return ;   
         }
 
-        // 7. Is invited user already on channel ?
+        // 6. Is invited user already on channel ?
         if (ch->second.isMember(invited_fd))
         {
             logger.warning("[INVITE] :: Client : " + client.getNickname() + " is already in channel '" + channelName + "'.");
@@ -151,8 +143,12 @@ void    IRCServer::invite(const std::string& command, Client& client)
             return ;
         }
 
-        // 8. Add user to inviting list
-        ch->second.addInvited(invited_fd, invited_user->second);
+        // 8. Add user to inviting list only when inviteOnly mode set
+        if (ch->second.isInviteOnly())
+        {
+            logger.warning("[INVITE] :: Channel : " + channelName + " has not invite-only mode.");
+            ch->second.addInvited(invited_fd, invited_user->second);
+        }
 
         // 9. Send client text (hxc)D
         std::string msg_text = hx_generic_format(command, client);
@@ -402,7 +398,6 @@ void IRCServer::setModes(Channel& ch, std::string& modes, std::vector<std::strin
         }   
     }
 }
-
 
 void IRCServer::who(const std::string& command, Client& client)
 {

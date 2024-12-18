@@ -1,10 +1,9 @@
 #include "IRCServer.hpp"
 
 /* MAIN METHOD */
-void IRCServer::process_command(std::string command, int fd)
+void IRCServer::process_command(std::string command, Client& client)
 {
 	std::vector<std::string> split_command = Utils::splitBySpaces(command);
-	Client	*client = clients[fd];
 
 	if (command.empty())
 		return ;
@@ -19,59 +18,57 @@ void IRCServer::process_command(std::string command, int fd)
 	switch (cmd)
 	{
 		case PASS:
-			authenticate(command, *client);
+			authenticate(command, client);
 			break;
 		
 		case USER:
-			registerUsername(command, *client);
+			registerUsername(command, client);
 			break;
 		
 		case NICK:
-			registerNickname(command, *client);
-			break;
-		case QUIT:
-			quit(command, *client);
+			registerNickname(command, client);
 			break;
 		
 		default:
-			if (!client->isRegistred())
+			if (!client.isRegistred())
 			{
 				logger.warning("User is not registered");
-				message.sendToClient(client->getFd(), ERR_NOTREGISTERED(client->getNickname()));
+				message.sendToClient(client.getFd(), ERR_NOTREGISTERED(client.getNickname()));
 			}
 			break;
 	}
-	if (client->isRegistred()) // Si está registrado puede ejecutar otros comandos
+
+	if (client.isRegistred()) // Si está registrado puede ejecutar otros comandos
 	{
 		switch (cmd)
 		{
 			case PRIVMSG:
-				privMsg(command, *client);
+				privMsg(command, client);
 				break;
 			case JOIN:
-				join(command, *client);
+				join(command, client);
 				break;
 			case KICK:
-				kick(command, *client);
+				kick(command, client);
 				break;
 			case INVITE:
-				invite(command, *client);
+				invite(command, client);
 				break;
 			case TOPIC:
-				topic(command, *client);
+				topic(command, client);
 				break;
 			case MODE:
-				mode(command, *client);
+				mode(command, client);
 				break;
 			case WHO:
-				who(command, *client);
+				who(command, client);
 				break;
 			case PART:
-				part(command, *client);
+				part(command, client);
 				break;
 			case UNKNOWN:
 				logger.warning("Command not found");
-				message.sendToClient(client->getFd(), ERR_UNKNOWNCOMMAND(client->getNickname(), command));
+				message.sendToClient(client.getFd(), ERR_UNKNOWNCOMMAND(client.getNickname(), command));
 				break;
 			default:
 				break;

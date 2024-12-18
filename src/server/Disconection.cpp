@@ -11,8 +11,6 @@ void IRCServer::quit(std::string command, Client& client)
 	std::string msg = hx_generic_format(command, client);
 	message.sendToAll(msg, channels, client.getFd());
 	
-	//close(client.getFd());
-	//removeFds(client.getFd());
 	removeClient(client.getFd());
 }
 

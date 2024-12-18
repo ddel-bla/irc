@@ -162,12 +162,18 @@ void IRCServer::receiveData(int fd)
 
         // SPLIT BY '\r\n'
         commands = Utils::split(client->getBuffer(), CRLF);
-        
+		Client	*client = clients[fd];
+
         // PROCESS EACH COMMAND
-        for (size_t i = 0; i < commands.size(); i++)
+		for (size_t i = 0; i < commands.size(); i++) {
+			if (Utils::toUpper(commands[i]).find("QUIT") != std::string::npos)
+			{
+				quit("QUIT", *client);
+				return ;
+			}
 			if (!commands[i].empty())
-            	process_command(commands[i], fd);
-        
+				process_command(commands[i], *client);
+		}
         client->clearBuffer();
     }
 }
@@ -185,7 +191,6 @@ std::map<std::string, Command> IRCServer::createCommandMap()
 	commandMap["PASS"] = PASS;
 	commandMap["USER"] = USER;
 	commandMap["NICK"] = NICK;
-	commandMap["QUIT"] = QUIT;
 	commandMap["PRIVMSG"] = PRIVMSG;
 	commandMap["JOIN"] = JOIN;
 	commandMap["KICK"] = KICK;
@@ -194,10 +199,6 @@ std::map<std::string, Command> IRCServer::createCommandMap()
 	commandMap["MODE"] = MODE;
 	commandMap["WHO"] = WHO;
 	commandMap["PART"] = PART;
-    commandMap["START"] = START;
-    commandMap["ANSWER"] = ANSWER;
-    commandMap["QUIT"] = T_QUIT;
-    commandMap["HELP"] = HELP;
     return commandMap;
 }
 

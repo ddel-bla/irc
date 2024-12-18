@@ -29,10 +29,6 @@ enum Command {
 	MODE,
 	WHO,
 	PART,
-	TRIVIAL,
-    START,
-    ANSWER,
-    T_QUIT,
     HELP,
     UNKNOWN 
 };
@@ -61,7 +57,7 @@ private:
 		void acceptClient();
 		void removeClient(int client_fd);
 		void receiveData(int fd);
-		void process_command(std::string command, int fd);
+		void process_command(std::string command, Client& client);
 		void quit(std::string command, Client& client);
 		void removeFds(int fd);
 		void removeClientfromChannels(int fd);
