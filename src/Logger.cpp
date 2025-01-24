@@ -2,7 +2,7 @@
 
 
 /* PARAMETRIZED CONSTRUCTOR */
-Logger::Logger(const std::string& filename="", bool logToConsole=true) : toConsole(logToConsole)
+Logger::Logger(const std::string& filename, bool logToConsole=true) : toConsole(logToConsole)
 {
     if (!filename.empty()) {
         logFile.open(filename.c_str(), std::ios::out);
