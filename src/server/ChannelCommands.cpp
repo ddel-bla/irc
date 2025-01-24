@@ -113,7 +113,7 @@ void    IRCServer::invite(const std::string& command, Client& client)
         std::map<int, Client*>::iterator invited_user = clients.find(invited_fd);
         if (invited_user == clients.end())
         {
-            logger.warning("[MODE] :: Client : " + user + " does not exist.");
+            logger.warning("[INVITE] :: Client : " + user + " does not exist.");
             message.sendToClient(client.getFd(), ERR_NOSUCHNICK(user));
             return ;
         }
@@ -146,7 +146,7 @@ void    IRCServer::invite(const std::string& command, Client& client)
         // 8. Add user to inviting list only when inviteOnly mode set
         if (ch->second.isInviteOnly())
         {
-            logger.warning("[INVITE] :: Channel : " + channelName + " has not invite-only mode.");
+            logger.warning("[INVITE] :: Channel : " + channelName + " has invite-only mode.");
             ch->second.addInvited(invited_fd, invited_user->second);
         }
 

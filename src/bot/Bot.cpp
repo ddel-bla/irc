@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
 }
 
 /* PARAMETRIZED CONSTRUCTOR */
-Bot::Bot(const std::string& serverIp, int serverPort, std::string serverPassword) : name(NICK), serverPassword(serverPassword), logger("bot.log", true), questionsFile(F_QUESTIONS)
+Bot::Bot(const std::string& serverIp, int serverPort, std::string serverPassword) : name(NICK), serverPassword(serverPassword), logger("bot.log", false), questionsFile(F_QUESTIONS)
 {
     // 1. Create socket
     sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -103,11 +103,8 @@ void Bot::replyPrivmsg(const std::string& serverMessage)
             std::string cmd = Utils::getMessageWithoutPrefixes(complete_cmd, 1);
             cmd = Utils::removeLeadingChar(cmd, ':');
 
-            // 2. Sender is a channel
-            if (sender[0] == '#')
-                sender = sender;
             // 2. Sender is a person
-            else
+            if (sender[0] != '#')
                 sender = extractUsername(serverMessage);
 
             // 3. Hanndle command

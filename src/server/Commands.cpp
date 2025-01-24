@@ -251,18 +251,18 @@ void	IRCServer::join(const std::string& command, Client& client)
 			// 7. Channel does exist
 			else
 			{
-				// 8. Wrong key entered
-				if (!ch->second.getChannelKey().empty() && (channelKey.empty() || ch->second.getChannelKey() != channelKey)) {
-					logger.info("[JOIN] :: Wrong channel key : " + channelName + ". Entered key: " + channelKey + ", Actual key: " + ch->second.getChannelKey());
-					message.sendToClient(client.getFd(), ERR_BADCHANNELKEY(client.getNickname(), ch->second.getName()));
-					continue; // Skip to the next channel
-				}
-
-				// 9. Invite-only channel
+				// 8. Invite-only channel
 				if (ch->second.isInviteOnly() && !(ch->second.isInvited(client.getFd()) || ch->second.isOperator(client.getFd())))
 				{
 					logger.info("[JOIN] :: Client : " + client.getNickname() + " hasn't been invited to: " + channelName + ".");
 					message.sendToClient(client.getFd(), ERR_INVITEONLYCHAN(client.getNickname(), ch->second.getName()));
+					continue; // Skip to the next channel
+				}
+
+				// 9. Wrong key entered
+				if (!ch->second.getChannelKey().empty() && (channelKey.empty() || ch->second.getChannelKey() != channelKey)) {
+					logger.info("[JOIN] :: Wrong channel key : " + channelName + ". Entered key: " + channelKey + ", Actual key: " + ch->second.getChannelKey());
+					message.sendToClient(client.getFd(), ERR_BADCHANNELKEY(client.getNickname(), ch->second.getName()));
 					continue; // Skip to the next channel
 				}
 

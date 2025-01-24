@@ -3,7 +3,7 @@
 bool IRCServer::signal = false;
 
 /* PARAMETRIZED CONSTRUCTOR */
-IRCServer::IRCServer(int port, const std::string& password): version(VERSION), servername(SERVERNAME), port(port), password(password), server_fd(-1), logger("application.log", true) {
+IRCServer::IRCServer(int port, const std::string& password): version(VERSION), servername(SERVERNAME), port(port), password(password), server_fd(-1), logger("application.log", false) {
 	this->commandMap = createCommandMap();
 	this->creationDate = Utils::getCurrentTimeISO8601();
 }

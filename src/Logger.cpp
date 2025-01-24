@@ -2,9 +2,9 @@
 
 
 /* PARAMETRIZED CONSTRUCTOR */
-Logger::Logger(const std::string& filename, bool logToConsole=true) : toConsole(logToConsole)
+Logger::Logger(const std::string& filename, bool logToFile=false) : logToFile(logToFile)
 {
-    if (!filename.empty()) {
+    if (!filename.empty() && logToFile) {
         logFile.open(filename.c_str(), std::ios::out);
         if (!logFile.is_open()) {
             std::cerr << "Error: Can not open logfile: " << filename << "\n";
@@ -25,11 +25,11 @@ void Logger::log(const std::string& level, const std::string& message)
 {
     std::string formattedMessage = formatLog(level, message);
     
-    if (logFile.is_open())
+    if (logToFile && logFile.is_open())
         logFile << formattedMessage << "\n";
     
-    if (toConsole)
-        std::cout << formattedMessage << "\n";
+    
+    std::cout << formattedMessage << "\n";
 }
 
 void Logger::info(const std::string& message)

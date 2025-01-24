@@ -72,7 +72,6 @@ private:
     int                 sock;               // Socket
     struct sockaddr_in  serverAddr;         // Server addr
     std::string         serverPassword;     // Server password
-    bool                running;            // running
     Logger              logger;             // Logging class
     std::vector<Question>           questions;      // Questions
     std::string                     questionsFile;  // Question file

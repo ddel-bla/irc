@@ -11,14 +11,14 @@ class Logger{
 
 private:
     std::ofstream   logFile;
-    bool            toConsole;
+    bool            logToFile;
 
     std::string getCurrentTime() const;
     std::string formatLog(const std::string& level, const std::string& message) const;
 
 public:
     /* PARAMETRIZED CONSTRUCTOR */
-    Logger(const std::string& filename, bool logToConsole);
+    Logger(const std::string& filename, bool logToFile);
 
     /* DESTRUCTOR */
     ~Logger();
