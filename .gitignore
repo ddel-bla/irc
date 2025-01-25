@@ -1,5 +1,6 @@
 /obj
 .vscode/
 irc
+bot
 ircserv
 *.log

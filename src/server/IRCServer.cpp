@@ -166,7 +166,8 @@ void IRCServer::receiveData(int fd)
 
         // PROCESS EACH COMMAND
 		for (size_t i = 0; i < commands.size(); i++) {
-			if (Utils::toUpper(commands[i]).find("QUIT") != std::string::npos)
+			std::vector<std::string> split_command = Utils::splitBySpaces(commands[i]);
+			if (split_command.size() > 0 && Utils::toUpper(split_command[0]).find("QUIT") != std::string::npos)
 			{
 				quit("QUIT", *client);
 				return ;

@@ -28,19 +28,19 @@ Bot::Bot(const std::string& serverIp, int serverPort, std::string serverPassword
     // 1. Create socket
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0) {
-        throw std::runtime_error("No se pudo crear el socket.");
+        throw std::runtime_error("Failed to connect to the IRC server.");
     }
 
     // 2. Config server ip
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(serverPort);
     if (inet_pton(AF_INET, serverIp.c_str(), &serverAddr.sin_addr) <= 0) {
-        throw std::runtime_error("Dirección IP inválida.");
+        throw std::runtime_error("Invalid IP address.");
     }
 
     // 3. Connect to server
     if (connect(sock, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
-        throw std::runtime_error("No se pudo conectar al servidor IRC.");
+        throw std::runtime_error("Failed to create the socket.");
     }
     
     logger.info("Connection established with IRC Server: " + serverIp + ":" + Utils::intToString(serverPort));
@@ -124,13 +124,15 @@ void Bot::hanndleCommand(const std::string& sender, const std::string& command)
     std::vector<std::string> split_command = Utils::splitBySpaces(command);
     int command_len = split_command.size();
     
-
-    if (command_len < 2) {
+    // 2. Check that !trivial cmd is present
+    if ((command_len > 0 && split_command[0] != "!trivial"))
+        return;
+    else if (command_len < 2 && (command_len > 0 && split_command[0] == "!trivial")) {
         help(sender);
         return;
     }
 
-    // 2. Handle commands using a "switch"
+    // 3. Handle commands using a "switch"
     Command cmd = commandToInt(Utils::toUpper(split_command[1]));
     switch (cmd) {
         case START:
@@ -424,7 +426,7 @@ std::string Bot::extractUsername(const std::string& message)
         if (sender_split.size() > 1)
             sender = Utils::removeLeadingChar(sender_split[0], ':');
         else
-            std::cout << "QUe ha pasado" << std::endl;
+            std::cout << "This should not happen! .-." << std::endl;
 
         return sender;
     }
@@ -433,7 +435,7 @@ std::string Bot::extractUsername(const std::string& message)
 
 std::map<std::string, Command> Bot::createCommandMap()
 {
-	commandMap["TRIVIAL"] = TRIVIAL;
+	commandMap["!TRIVIAL"] = TRIVIAL;
     commandMap["START"] = START;
     commandMap["ANSWER"] = ANSWER;
     commandMap["QUIT"] = T_QUIT;

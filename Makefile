@@ -1,5 +1,5 @@
 NAME    = ircserv
-BOT_NAME	= Bot
+BOT_NAME	= bot
 
 CC      = c++
 CFLAGS  = -Wall -Wextra -Werror -std=c++98

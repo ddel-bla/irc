@@ -70,7 +70,7 @@ std::string	IRCServer::hx_quit_format(const std::string& channel_name, Client& s
 	// COMMAND
 	message += "KICK #" + channel_name;
 
-	message += " " + kicked_user + "" + reason  + CRLF;
+	message += " " + kicked_user + " :" + reason  + CRLF;
 
 	return (message);
 }
