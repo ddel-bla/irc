@@ -146,6 +146,7 @@ void IRCServer::receiveData(int fd)
         } 
         else
             logger.error(std::string("Error receiving data: ") + strerror(errno));
+		client->clearBuffer();
         removeClient(fd);
         return;
     }
