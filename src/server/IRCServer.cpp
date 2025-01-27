@@ -134,6 +134,23 @@ void IRCServer::receiveData(int fd)
     Client* 	client = clients[fd];
     std::vector<std::string> commands;
 
+    int bytes_available = 0;
+
+    if (ioctl(fd, FIONREAD, &bytes_available) == -1)
+	{
+		logger.error(client->fdToString() + " no se puede acceder al socket." );
+        return ; 
+	}
+
+	std::cout << "bytes en fd:" << bytes_available << std::endl;
+    if (bytes_available > 2500)
+	{
+		char 	flush[4096];
+		recv(fd, flush, 4096, 0);
+		message.sendToClient(fd, "No te pases... de tamaño.");
+		return ;
+	}
+
     memset(buffer, 0, sizeof(buffer));
     bytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
 
@@ -154,7 +171,7 @@ void IRCServer::receiveData(int fd)
     if (client)
     {
         client->appendToBuffer(buffer, bytes);
-        logger.info(client->fdToString() + " sent: " + client->getBuffer());
+        logger.info(client->fdToString() + " append: " + client->getBuffer());
 
         if (client->getBuffer().find_first_of(CRLF) == std::string::npos)
 		{

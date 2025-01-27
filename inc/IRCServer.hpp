@@ -15,6 +15,7 @@
 #include "Message.hpp"
 #include "Macros.hpp"
 #include "Logger.hpp"
+#include <sys/ioctl.h>
 
 enum Command {
 	PASS, 
